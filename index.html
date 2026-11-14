@@ -65,6 +65,8 @@
   .btn-ghost:hover { border-color: var(--pale); background: rgba(161,240,253,.09); }
   .btn-cyan:hover, .btn-forge:hover { filter: brightness(1.08); }
   .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .hero-count { margin: 14px 0 0; font-size: 17px; font-weight: 800; letter-spacing: .05em; color: var(--gold); text-align: center; }
+  .sticky-cta #stickyCount { margin-left: 8px; font-weight: 800; }
   .chip { border: 1px solid rgba(245,165,66,.38); background: rgba(11,33,38,.7); color: var(--pale); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 0 18px rgba(245,150,40,.12); }
   .hero img.main { width: min(100%, 600px); height: auto; border-radius: 24px; border: 1px solid var(--line); display: block; margin: 24px auto 0; box-shadow: 0 0 90px rgba(49,172,208,.38), 0 0 44px rgba(245,197,66,.14); }
   .tag { margin-top: 16px; font-size: 14px; color: var(--muted); }
@@ -399,6 +401,7 @@
         <a class="btn btn-cyan" href="#mint" id="heroMintBtn">MINT &mdash; LOADING&hellip;</a>
         <a class="btn btn-ghost" href="#forge" data-en="Try the forge ↓" data-ja="フォージを試す ↓" data-zh="试试锻造 ↓" data-ko="포지 체험하기 ↓">Try the forge ↓</a>
       </div>
+      <p class="hero-count hero-anim d5"><b id="heroMintedCount">&hellip;</b><span data-en=" / 3,333 minted" data-ja=" / 3,333 ミント済み" data-zh=" / 3,333 已铸造" data-ko=" / 3,333 민트됨"> / 3,333 minted</span></p>
       <div class="chips hero-anim d5">
         <span class="chip" data-en="First mint FREE" data-ja="初回ミント無料" data-zh="首次铸造免费" data-ko="첫 민트 무료">First mint FREE</span>
         <span class="chip" data-en="Forge 3 into 1" data-ja="3体を1体に鍛造" data-zh="3合1锻造" data-ko="3개를 1개로 단조">Forge 3 into 1</span>
@@ -742,7 +745,7 @@
   </div>
 </footer>
 
-<a class="sticky-cta" href="#mint" id="stickyCta"><span id="stickyCtaLabel">MINT — LOADING…</span></a>
+<a class="sticky-cta" href="#mint" id="stickyCta"><span id="stickyCtaLabel">MINT — LOADING…</span><span id="stickyCount"></span></a>
 
 <script>
   let s = { common: 12, rare: 0, epic: 0, mythic: 0, burned: 0 };
@@ -1057,7 +1060,10 @@
     const mc = $("mintedCount");
     if (res) {
       const n = parseInt(res, 16);
-      if (mc) mc.textContent = n.toLocaleString("en-US") + " / 3,333";
+      const num = n.toLocaleString("en-US");
+      if (mc) mc.textContent = num + " / 3,333";
+      const hmc = $("heroMintedCount"); if (hmc) hmc.textContent = num;
+      const sc = $("stickyCount"); if (sc) sc.textContent = " \u00b7 " + num + " / 3,333";
     } else {
       if (mc) mc.textContent = T("loadFail");
     }
