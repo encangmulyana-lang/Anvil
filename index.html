@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ANVIL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #04171B; --bg2: #061B20; --panel: #0B2126; --panel2: #0C2228;
+    --cyan: #31ACD0; --cyan2: #2D9EBF; --pale: #A1F0FD;
+    --text: #ffffff; --muted: #8FA6AD; --gold: #f5c542;
+    --teal: #2dd4bf; --blue: #3b82f6; --purple: #a855f7;
+    --ember: #f5a542; --ember2: #ff7a1a;
+    --line: rgba(161,240,253,.14);
+    --ease: cubic-bezier(.22,1,.36,1);
+  }
+  html { scroll-behavior: smooth; }
+  body { background: radial-gradient(1100px 520px at 50% -8%, rgba(49,172,208,.20), transparent 62%), linear-gradient(180deg, #071E24 0%, #04171B 42%, #031316 100%); color: var(--text); font-family: 'Inter', -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Noto Sans SC", "Noto Sans KR", "Hiragino Sans", "Microsoft YaHei", sans-serif; line-height: 1.55; overflow-x: hidden; }
+  h1, h2, .logo, .wordmark, .foot-word, .stat b, .cta h2, .step h3, .tier h3, .phase h3, .mini-h { font-family: 'Space Grotesk', 'Inter', -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Noto Sans SC", "Noto Sans KR", sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 0; }
+  section { padding: 64px 0 0; scroll-margin-top: 96px; }
+  h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: .01em; margin: 12px 0 0; background: linear-gradient(90deg, #ffffff 15%, var(--pale) 42%, #ffd98a 68%, #ffffff 90%); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradShift 7s ease-in-out infinite; }
+  .sub { color: var(--muted); font-size: 16px; line-height: 1.65; margin-top: 12px; max-width: 640px; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .22em; color: var(--cyan); text-transform: uppercase; }
+  .badge { display: inline-block; background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; font-weight: 800; font-size: 11px; letter-spacing: .12em; padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+  .badge.ghost { background: transparent; color: var(--pale); border: 1px solid rgba(161,240,253,.45); }
+
+  /* ---- floating pill nav ---- */
+  .nav { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); width: min(1120px, calc(100% - 24px)); z-index: 50; }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(6,27,32,.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 999px; padding: 10px 12px 10px 20px; }
+  .logo { font-weight: 700; letter-spacing: .16em; font-size: 16px; color: #fff; text-decoration: none; white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
+  .logo span { color: var(--cyan); }
+  .nav-links { display: flex; gap: 18px; }
+  .nav-links a { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; transition: color .3s var(--ease); }
+  .nav-links a:hover { color: var(--pale); }
+  .nav-links a.nav-x { text-transform: none; letter-spacing: .02em; color: var(--pale); }
+  .foot-x { display: inline-block; margin-top: 16px; color: var(--pale); font-weight: 700; font-size: 14px; text-decoration: none; transition: color .3s var(--ease); }
+  .foot-x:hover { color: var(--cyan); }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .burger { display: none; background: transparent; border: 1px solid var(--line); color: var(--pale); border-radius: 999px; width: 44px; height: 44px; font-size: 18px; line-height: 1; cursor: pointer; }
+
+  /* ---- hero ---- */
+  .hero { position: relative; text-align: center; padding: 150px 0 0; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; left: 50%; bottom: -40px; width: 1100px; max-width: 130%; height: 480px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgba(245,150,40,.22), rgba(255,122,26,.08) 45%, transparent 70%); pointer-events: none; }
+  .beam { position: absolute; left: 50%; top: 0; bottom: 0; width: 300px; transform: translateX(-50%); background: linear-gradient(180deg, transparent, rgba(49,172,208,.34) 30%, rgba(161,240,253,.42) 55%, rgba(49,172,208,.34) 75%, transparent); pointer-events: none; animation: pulse 6s ease-in-out infinite; }
+  .beam::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; transform: translateX(-50%); background: linear-gradient(180deg, transparent, rgba(161,240,253,.9), transparent); box-shadow: 0 0 36px 6px rgba(49,172,208,.7); }
+  @keyframes pulse { 0%,100% { opacity: .7; } 50% { opacity: 1; } }
+  .particles { position: absolute; inset: 0; pointer-events: none; }
+  .particles i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--pale); opacity: .7; animation: twinkle var(--d,4s) ease-in-out infinite; animation-delay: var(--dl,0s); }
+  @keyframes twinkle { 0%,100% { opacity: .15; transform: scale(.7); } 50% { opacity: .9; transform: scale(1.15); } }
+  .hero-inner { position: relative; z-index: 2; }
+  h1 { font-size: clamp(64px, 13vw, 132px); line-height: .95; font-weight: 700; letter-spacing: .01em; margin-top: 16px; background: linear-gradient(90deg, #ffffff 12%, #ffe3a1 38%, var(--pale) 62%, #ffffff 88%); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradShift 7s ease-in-out infinite; filter: drop-shadow(0 0 26px rgba(245,165,66,.28)); }
+  .h1-grad { display: block; background: linear-gradient(90deg, var(--pale), var(--cyan), var(--pale)); background-size: 200% 100%; animation: gradShift 4.5s ease-in-out infinite; -webkit-background-clip: text; background-clip: text; color: transparent; font-size: clamp(28px, 5.5vw, 52px); letter-spacing: .05em; margin-top: 10px; filter: drop-shadow(0 0 16px rgba(49,172,208,.35)); }
+  .hero .sub { margin-left: auto; margin-right: auto; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; padding: 15px 26px; font-size: 15px; font-weight: 800; letter-spacing: .02em; text-decoration: none; border: none; cursor: pointer; font-family: inherit; transition: filter .2s ease, box-shadow .2s ease; }
+  .btn-cyan { background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; box-shadow: 0 0 28px rgba(49,172,208,.35); }
+  .btn-cyan:disabled { background: rgba(161,240,253,.16); color: rgba(161,240,253,.55); box-shadow: none; cursor: not-allowed; }
+  .btn-ghost { background: rgba(161,240,253,.05); color: var(--pale); border: 1px solid rgba(161,240,253,.4); }
+  .btn-ghost:hover { border-color: var(--pale); background: rgba(161,240,253,.09); }
+  .btn-cyan:hover, .btn-forge:hover { filter: brightness(1.08); }
+  .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .chip { border: 1px solid rgba(245,165,66,.38); background: rgba(11,33,38,.7); color: var(--pale); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 0 18px rgba(245,150,40,.12); }
+  .hero img.main { width: min(100%, 600px); height: auto; border-radius: 24px; border: 1px solid var(--line); display: block; margin: 24px auto 0; box-shadow: 0 0 90px rgba(49,172,208,.38), 0 0 44px rgba(245,197,66,.14); }
+  .tag { margin-top: 16px; font-size: 14px; color: var(--muted); }
+  .tag b { color: var(--gold); }
+  .hero-floats { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  .float-card { position: absolute; width: 118px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); padding: 8px; box-shadow: 0 18px 40px rgba(0,0,0,.45); animation: bob 6s ease-in-out infinite; opacity: .92; }
+  .float-card img { width: 100%; height: 104px; object-fit: contain; display: block; }
+  .float-card .fc-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-align: center; margin-top: 4px; font-weight: 800; }
+  .fc1 { left: 1%; top: 36%; --r: -8deg; }
+  .fc2 { right: 1%; top: 28%; --r: 7deg; animation-delay: 1.2s; }
+  .fc3 { right: 5%; top: 62%; --r: -5deg; animation-delay: 2.4s; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(var(--r,0deg)); } 50% { transform: translateY(-10px) rotate(var(--r,0deg)); } }
+  .wordmark { font-size: clamp(80px, 19vw, 220px); font-weight: 700; letter-spacing: .02em; line-height: 1; color: rgba(161,240,253,.05); text-align: center; margin-top: 44px; margin-bottom: 12px; white-space: nowrap; user-select: none; pointer-events: none; }
+
+  /* ---- marquee ---- */
+  .marquee { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; background: rgba(11,33,38,.55); margin-top: 0; }
+  .marquee-track { display: flex; width: max-content; animation: scrollx 28s linear infinite; }
+  .marquee-track span { font-size: 14px; font-weight: 800; letter-spacing: .14em; color: var(--pale); white-space: nowrap; padding-right: 10px; }
+  @keyframes scrollx { to { transform: translateX(-50%); } }
+
+  /* ---- stats ---- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .stat b { display: block; font-size: clamp(24px, 3.4vw, 34px); font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 11px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+  .stat .prop { display: block; margin-top: auto; padding-top: 8px; font-size: 10px; letter-spacing: .18em; color: var(--cyan); font-weight: 800; }
+
+  /* ---- how it works ---- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+  .step { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; transition: border-color .3s var(--ease), box-shadow .3s var(--ease); }
+  .step:hover { border-color: rgba(161,240,253,.4); }
+  .step, .tier, .stat, .phase, .demo, .faq-item { background-image: linear-gradient(180deg, rgba(161,240,253,.05), rgba(161,240,253,0) 26%); }
+  .icon-box { width: 52px; height: 52px; border-radius: 14px; background: rgba(49,172,208,.12); border: 1px solid rgba(49,172,208,.35); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(49,172,208,.18); margin-bottom: 14px; }
+  .step .n { font-size: 12px; font-weight: 800; letter-spacing: .14em; color: var(--cyan); }
+  .step h3 { font-size: 18px; margin: 4px 0 6px; }
+  .step p { color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+  /* ---- tiers ---- */
+  .tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px; }
+  .tier { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 14px; text-align: center; transition: border-color .3s var(--ease), box-shadow .3s var(--ease); }
+  .tier:hover { border-color: rgba(161,240,253,.4); }
+  .tier-art { position: relative; border-radius: 12px; overflow: hidden; background: radial-gradient(120% 100% at 50% 0%, rgba(49,172,208,.10), transparent 60%); }
+  .tier-art::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: linear-gradient(180deg, transparent, rgba(4,23,27,.85)); pointer-events: none; }
+  .tier-art img { width: 100%; height: 220px; object-fit: contain; display: block; }
+  .tier-badge { position: absolute; left: 10px; top: 10px; z-index: 2; background: rgba(4,23,27,.78); border: 1px solid rgba(161,240,253,.35); color: var(--pale); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 800; letter-spacing: .14em; backdrop-filter: blur(4px); }
+  .tier.common .tier-badge { border-color: rgba(45,212,191,.55); color: var(--teal); }
+  .tier.rare .tier-badge { border-color: rgba(59,130,246,.55); color: #7fb0ff; }
+  .tier.epic .tier-badge { border-color: rgba(168,85,247,.55); color: #c99aff; }
+  .tier.mythic .tier-badge { border-color: rgba(245,197,66,.6); color: var(--gold); }
+  .tier h3 { font-size: 15px; margin-top: 8px; }
+  .tier .rule { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tier.common h3 { color: var(--teal); } .tier.rare h3 { color: var(--blue); }
+  .tier.epic h3 { color: var(--purple); } .tier.mythic h3 { color: var(--gold); }
+  .tier.common { box-shadow: 0 14px 34px rgba(45,212,191,.14); }
+  .tier.rare { box-shadow: 0 14px 34px rgba(59,130,246,.16); }
+  .tier.epic { box-shadow: 0 14px 34px rgba(168,85,247,.16); }
+  .tier.mythic { box-shadow: 0 14px 40px rgba(245,197,66,.18); }
+  .tier.common { border-color: rgba(45,212,191,.30); }
+  .tier.rare { border-color: rgba(59,130,246,.32); }
+  .tier.epic { border-color: rgba(168,85,247,.32); }
+  .tier.mythic { border-color: rgba(245,197,66,.38); }
+
+  /* ---- spotlight ---- */
+  .spotlight { display: grid; grid-template-columns: 1fr 1.15fr; gap: 26px; align-items: center; margin-top: 24px; background: linear-gradient(135deg, rgba(245,150,40,.12), rgba(11,33,38,.92) 55%); border: 1px solid rgba(245,197,66,.35); border-radius: 24px; padding: 24px; box-shadow: 0 0 60px rgba(245,150,40,.12); }
+  .spot-art { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid rgba(245,197,66,.3); }
+  .spot-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 100%, rgba(245,150,40,.30), transparent 65%); pointer-events: none; }
+  .spot-art img { width: 100%; height: auto; display: block; }
+  .spot-body .sub { margin-top: 0; max-width: none; }
+  .spot-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .spot-chip { border-color: rgba(245,197,66,.45); box-shadow: 0 0 18px rgba(245,150,40,.14); }
+  @media (max-width: 900px) { .spotlight { grid-template-columns: 1fr; } }
+
+  /* ---- forge demo ---- */
+  .demo { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-top: 24px; }
+  .counters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; margin-bottom: 14px; }
+  .counters .c { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 2px; }
+  .counters .c b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .counters .c span { font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  .counters .c.common b { color: var(--teal); } .counters .c.rare b { color: var(--blue); }
+  .counters .c.epic b { color: var(--purple); } .counters .c.mythic b { color: var(--gold); }
+  .forge-btns { display: grid; gap: 10px; }
+  .btn-forge { background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; width: 100%; border-radius: 12px; padding: 13px 14px; font-size: 15px; font-weight: 700; box-shadow: 0 0 26px rgba(245,150,40,.25), 0 0 18px rgba(49,172,208,.28); }
+  .btn-forge:disabled { background: rgba(161,240,253,.12); color: rgba(161,240,253,.4); cursor: not-allowed; }
+  .btn-ghost2 { background: rgba(161,240,253,.04); color: var(--pale); border: 1px solid var(--line); width: 100%; margin-top: 10px; border-radius: 12px; padding: 13px 14px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-ghost2:hover { background: rgba(161,240,253,.09); border-color: rgba(161,240,253,.4); }
+  .result { text-align: center; margin-top: 16px; min-height: 24px; }
+  .result img { width: 150px; height: 150px; object-fit: contain; display: block; margin: 6px auto; }
+  .result p { font-size: 14px; color: var(--muted); }
+  .result p b { color: var(--gold); }
+  .note { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--cyan); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; color: var(--muted); margin-top: 24px; }
+  .note b { color: var(--text); }
+
+  /* ---- mint ---- */
+  .mintbox { background: linear-gradient(180deg, rgba(49,172,208,.10), rgba(11,33,38,.9)); border: 1px solid rgba(49,172,208,.35); border-radius: 24px; padding: 28px 24px; text-align: center; margin-top: 24px; }
+  .mintbox p { color: var(--muted); font-size: 14px; margin: 12px auto 16px; max-width: 560px; }
+  .mrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line); font-size: 14px; text-align: left; max-width: 560px; margin: 0 auto; }
+  .mrow:last-of-type { border-bottom: none; }
+  .mrow span { color: var(--muted); }
+  .mrow b { color: #fff; font-weight: 700; text-align: right; }
+  .btn-mint { background: rgba(161,240,253,.16); color: rgba(161,240,253,.55); width: 100%; max-width: 560px; padding: 16px; font-size: 17px; cursor: not-allowed; margin-top: 18px; }
+
+  /* ---- params ---- */
+  table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 14px; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child { color: var(--muted); width: 42%; }
+
+  /* ---- faq accordion ---- */
+  .faq { margin-top: 24px; display: grid; gap: 10px; }
+  .faq-item { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+  .faq-q { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; background: none; border: none; padding: 16px 18px; color: #fff; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer; font-family: inherit; transition: background .3s var(--ease); }
+  .faq-q:hover { background: rgba(49,172,208,.05); }
+  .faq-q:active { background: rgba(49,172,208,.08); }
+  .faq-icon { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(49,172,208,.5); color: var(--pale); display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; transition: transform .3s var(--ease); background: rgba(49,172,208,.12); }
+  .faq-item.open .faq-icon { transform: rotate(45deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .5s var(--ease); }
+  .faq-a p { padding: 0 18px 16px; color: var(--muted); font-size: 14px; }
+
+  /* ---- closing CTA ---- */
+  .cta { position: relative; text-align: center; padding: 80px 20px; overflow: hidden; }
+  .cta .beam { width: 320px; }
+  .cta h2 { font-size: clamp(32px, 6vw, 54px); position: relative; z-index: 2; }
+  .cta p { color: var(--muted); position: relative; z-index: 2; margin: 10px auto 0; max-width: 520px; }
+  .cta .btn { position: relative; z-index: 2; margin-top: 24px; }
+
+  /* ---- footer ---- */
+  footer { text-align: center; color: var(--muted); font-size: 12px; line-height: 1.7; padding: 16px 20px 48px; overflow: hidden; }
+  .foot-word { font-size: clamp(64px, 16vw, 180px); font-weight: 700; color: rgba(161,240,253,.05); text-align: center; line-height: 1; white-space: nowrap; user-select: none; pointer-events: none; margin-bottom: 16px; }
+
+  /* ---- scroll reveal ---- */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 1.05s var(--ease), transform 1.05s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  /* ---- reveal stagger ---- */
+  .steps .step:nth-child(2), .tiers .tier:nth-child(2) { transition-delay: .08s; }
+  .steps .step:nth-child(3), .tiers .tier:nth-child(3) { transition-delay: .16s; }
+  .tiers .tier:nth-child(4) { transition-delay: .24s; }
+  .faq .faq-item:nth-child(2) { transition-delay: .06s; }
+  .faq .faq-item:nth-child(3) { transition-delay: .12s; }
+  .faq .faq-item:nth-child(4) { transition-delay: .18s; }
+  .faq .faq-item:nth-child(5) { transition-delay: .24s; }
+  .faq .faq-item:nth-child(6) { transition-delay: .3s; }
+  .timeline .phase:nth-child(2) { transition-delay: .08s; }
+  .timeline .phase:nth-child(3) { transition-delay: .16s; }
+  .timeline .phase:nth-child(4) { transition-delay: .24s; }
+  .timeline .phase:nth-child(5) { transition-delay: .32s; }
+
+  @media (min-width: 900px) {
+    .tiers .tier:nth-child(even) { transform: translateY(26px); }
+    .tiers { margin-bottom: 26px; }
+  }
+  @media (max-width: 900px) {
+    .tiers { grid-template-columns: repeat(2, 1fr); }
+    .steps { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 1120px) {
+    .nav-links { display: flex; position: absolute; top: calc(100% + 8px); left: 0; right: 0; flex-direction: column; background: rgba(6,27,32,.97); border: 1px solid var(--line); border-radius: 20px; padding: 12px 20px; gap: 4px; opacity: 0; pointer-events: none; transform: translateY(-8px); visibility: hidden; transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s linear .3s; }
+    .burger { display: block; }
+    .nav-links.open { opacity: 1; pointer-events: auto; transform: translateY(0); visibility: visible; transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s linear 0s; }
+    .nav-links a { display: flex; align-items: center; min-height: 44px; padding: 6px 0; }
+    section { scroll-margin-top: 150px; }
+  }
+  @media (max-width: 640px) {
+    section { padding: 56px 0 0; }
+    .hero-floats { position: static; display: flex; gap: 10px; justify-content: center; margin-top: 22px; }
+    .float-card { position: static; width: 100px; }
+    .float-card img { height: 84px; }
+    .hero-btns .btn { width: 100%; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .tiers { grid-template-columns: 1fr; }
+    .counters { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .wrap { padding: 0 16px; }
+    .hero { padding-top: 150px; }
+    .stat b { font-size: clamp(18px, 5.4vw, 24px); }
+    .spotlight { padding: 20px; }
+    .mintbox { padding: 24px 20px; }
+    td { padding: 12px 12px; }
+    .faq-q { padding: 16px 20px; }
+    footer { padding-bottom: 124px; }
+  }
+  @media (max-width: 380px) {
+    .counters { gap: 4px; }
+    .counters .c b { font-size: 18px; }
+    .counters .c span { font-size: 9px; }
+    .hero .sub { font-size: 15px; }
+    .float-card { width: 92px; }
+    .float-card img { height: 78px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    * { animation-duration: .01s !important; animation-iteration-count: 1 !important; }
+    .marquee-track { animation: none; }
+    .sticky-cta { transition: none; }
+    body.lang-fade .wrap, body.lang-fade .marquee, body.lang-fade .cta, body.lang-fade footer { animation: none; }
+  }
+
+  /* ---- sticky mobile CTA (<=640px only) ---- */
+  .sticky-cta { display: none; }
+  @media (max-width: 640px) {
+    .sticky-cta { display: flex; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 60; align-items: center; justify-content: center; min-height: 52px; border-radius: 999px; background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; font-size: 15px; font-weight: 800; letter-spacing: .02em; text-decoration: none; box-shadow: 0 10px 30px rgba(0,0,0,.5), 0 0 24px rgba(49,172,208,.35); transition: transform .3s var(--ease), box-shadow .3s var(--ease); }
+    .sticky-cta:active { transform: scale(.97); }
+  }
+  /* ---- counter bump + result fade ---- */
+  .counters .c b.bump { animation: bump .45s var(--ease); }
+  @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  .result.swap { animation: resultIn .5s var(--ease); }
+  @keyframes resultIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  /* ---- language switch fade ---- */
+  body.lang-fade .wrap, body.lang-fade .marquee, body.lang-fade .cta, body.lang-fade footer { animation: langFade .35s ease; }
+  @keyframes langFade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ---- i18n pills ---- */
+  .lang-pills { display: flex; gap: 6px; }
+  .lang-pill { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 10px 12px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: .06em; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background .3s var(--ease), color .3s var(--ease), transform .3s var(--ease); }
+  .lang-pill:active { transform: scale(.97); }
+  .lang-pill.active { background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; border-color: transparent; }
+  /* ---- hero entrance + animated gradient + ring pulse ---- */
+  .hero-anim { opacity: 0; animation: fadeUp .8s cubic-bezier(.22,.61,.36,1) forwards; }
+  .d1 { animation-delay: .05s; } .d2 { animation-delay: .15s; } .d3 { animation-delay: .25s; }
+  .d4 { animation-delay: .35s; } .d5 { animation-delay: .45s; } .d6 { animation-delay: .55s; } .d7 { animation-delay: .65s; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes gradShift { 0%,100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+  .mythic-ring { width: min(100%, 600px); margin: 24px auto 0; border-radius: 24px; opacity: 0; animation: fadeUp .8s cubic-bezier(.22,.61,.36,1) .55s forwards, ringPulse 4s ease-in-out 1.4s infinite; }
+  .mythic-ring img.main { margin: 0; width: 100%; }
+  @keyframes ringPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,197,66,.35), 0 0 55px rgba(49,172,208,.3); } 50% { box-shadow: 0 0 0 10px rgba(245,197,66,0), 0 0 90px rgba(49,172,208,.55), 0 0 34px rgba(245,197,66,.28); } }
+  /* ---- press scale + hover lift (desktop only) ---- */
+  .btn, .btn-forge, .btn-ghost2, .tab-btn { transition: transform .3s var(--ease), filter .3s var(--ease), box-shadow .3s var(--ease); }
+  .btn:active, .btn-forge:active, .btn-ghost2:active, .tab-btn:active { transform: scale(.97); }
+  @media (hover:hover) and (min-width: 900px) {
+    .tier { transition: border-color .3s var(--ease), translate .3s var(--ease), rotate .3s var(--ease); }
+    .tier:hover { translate: 0 -10px; rotate: -1deg; }
+    .tier img { transition: transform .3s var(--ease); }
+    .tier:hover img { transform: scale(1.05); }
+    .float-card:hover { animation-play-state: paused; transform: translateY(-14px) rotate(calc(var(--r, 0deg) + 3deg)) scale(1.05); }
+  }
+  /* ---- spark burst ---- */
+  .result { position: relative; }
+  .spark { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); pointer-events: none; animation: sparkFly .8s ease-out forwards; z-index: 3; }
+  @keyframes sparkFly { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(.2); } }
+  /* ---- mint tabs + agent prompt ---- */
+  .tabs { display: flex; gap: 8px; max-width: 560px; margin: 18px auto 0; background: rgba(11,33,38,.7); border: 1px solid var(--line); border-radius: 999px; padding: 5px; }
+  .tab-btn { flex: 1; background: transparent; border: none; color: var(--muted); border-radius: 999px; padding: 12px; min-height: 44px; font-size: 14px; font-weight: 800; cursor: pointer; font-family: inherit; }
+  .tab-btn.active { background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .mintbox .agent-title { font-size: 17px; margin-top: 18px; }
+  .mintbox .agent-intro { margin: 8px auto 0; }
+  .mintbox .prompt-label { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 800; margin-top: 16px; }
+  .prompt-box { background: #04171B; border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-align: left; max-width: 560px; margin: 12px auto 0; box-shadow: inset 0 1px 0 rgba(161,240,253,.06); }
+  .prompt-box code { font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace; font-size: 13px; line-height: 1.6; color: var(--pale); word-break: break-word; }
+  .mintbox .copy-btn { margin-top: 14px; width: 100%; max-width: 560px; }
+  .mintbox .copy-status { min-height: 20px; font-size: 13px; color: var(--cyan); margin-top: 8px; }
+  .mintbox .agent-note { color: var(--pale); font-size: 13px; margin-top: 6px; }
+  .mintbox .agent-rules { margin-top: 8px; }
+  @media (max-width: 1120px) {
+    .nav-in { flex-wrap: wrap; border-radius: 22px; }
+    .lang-pills { order: 3; flex-basis: 100%; justify-content: center; margin-top: 6px; }
+  }
+
+  /* ---- marketplace / token / roadmap ---- */
+  .mini-h { font-size: 18px; font-weight: 700; margin-top: 24px; }
+  .timeline { position: relative; margin-top: 24px; padding-left: 30px; }
+  .timeline::before { content: ""; position: absolute; left: 9px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, var(--cyan), rgba(49,172,208,.12)); }
+  .phase { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 20px 24px; margin-bottom: 14px; }
+  .phase::before { content: ""; position: absolute; left: -26px; top: 24px; width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); border: 2px solid #04171B; box-shadow: 0 0 14px rgba(49,172,208,.8); }
+  .phase .pill { display: inline-block; border: 1px solid rgba(49,172,208,.5); color: var(--pale); background: rgba(49,172,208,.12); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+  .phase .prop { display: inline-block; margin-left: 8px; font-size: 10px; letter-spacing: .18em; color: var(--cyan); font-weight: 800; }
+  .phase h3 { font-size: 18px; margin: 10px 0 4px; }
+  .phase p { color: var(--muted); font-size: 14px; }
+  .phase.now { border-color: rgba(49,172,208,.45); }
+
+  /* ---- CJK: tighten tracked uppercase labels (CJK glyphs need no wide tracking) ---- */
+  html:lang(ja) :is(.eyebrow, .stat .prop, .phase .prop), html:lang(zh) :is(.eyebrow, .stat .prop, .phase .prop), html:lang(ko) :is(.eyebrow, .stat .prop, .phase .prop) { letter-spacing: .08em; }
+  html:lang(ja) :is(.badge, .nav-links a, .chip, .stat span, .phase .pill, .tier-badge, .step .n, .marquee-track span, .prompt-label, .counters .c span), html:lang(zh) :is(.badge, .nav-links a, .chip, .stat span, .phase .pill, .tier-badge, .step .n, .marquee-track span, .prompt-label, .counters .c span), html:lang(ko) :is(.badge, .nav-links a, .chip, .stat span, .phase .pill, .tier-badge, .step .n, .marquee-track span, .prompt-label, .counters .c span) { letter-spacing: .04em; }
+  /* ---- mobile: keep stat labels on one line ---- */
+  @media (max-width: 640px) {
+    .stat span { font-size: 10px; letter-spacing: .08em; }
+    .stat .prop { letter-spacing: .12em; }
+  }
+  /* ---- live mint (production) ---- */
+  .qty-row { display: flex; gap: 8px; justify-content: center; max-width: 560px; margin: 16px auto 0; }
+  .qtybtn { flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: rgba(161,240,253,.04); color: var(--pale); font-weight: 800; font-size: 15px; font-family: inherit; cursor: pointer; transition: background .3s var(--ease), color .3s var(--ease); }
+  .qtybtn.on { background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; border-color: transparent; }
+  .total-cost { margin-top: 12px; font-size: 14px; color: var(--pale); min-height: 20px; }
+  .minted-by-you { font-size: 13px; color: var(--muted); min-height: 18px; }
+  .mint-msg { font-size: 13px; color: var(--pale); margin-top: 10px; min-height: 20px; word-break: break-word; }
+  .no-wallet { display: none; background: rgba(255,80,80,.12); border: 1px solid #ff5050; color: #ffb3b3; font-size: 13px; line-height: 1.6; padding: 12px 14px; margin-top: 12px; border-radius: 12px; text-align: left; }
+  .no-wallet.show { display: block; }
+  .btn-mint.live { background: linear-gradient(135deg, var(--pale), var(--cyan)); color: #04222B; cursor: pointer; box-shadow: 0 0 28px rgba(49,172,208,.35); }
+  #connectBtn { width: 100%; max-width: 560px; margin-top: 14px; }
+  .foot-contracts { margin-top: 12px; font-size: 12px; line-height: 2; }
+  .foot-contracts a { color: var(--muted); text-decoration: none; word-break: break-all; }
+  .foot-contracts a:hover { color: var(--pale); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a class="logo" href="#hero"><span>◆</span> ANVIL</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#how" data-en="How it works" data-ja="仕組み" data-zh="运作方式" data-ko="작동 방식">How it works</a>
+      <a href="#tiers" data-en="Tiers" data-ja="ティア" data-zh="稀有度" data-ko="티어">Tiers</a>
+      <a href="#forge" data-en="Forge" data-ja="フォージ" data-zh="锻造" data-ko="포지">Forge</a>
+      <a href="#mint" data-en="Mint" data-ja="ミント" data-zh="铸造" data-ko="민트">Mint</a>
+      <a href="#market" data-en="Marketplace" data-ja="マーケットプレイス" data-zh="市场" data-ko="마켓플레이스">Marketplace</a>
+      <a href="#token" data-en="Token" data-ja="トークン" data-zh="代币" data-ko="토큰">Token</a>
+      <a href="#roadmap" data-en="Roadmap" data-ja="ロードマップ" data-zh="路线图" data-ko="로드맵">Roadmap</a>
+      <a href="#faq" data-en="FAQ" data-ja="FAQ" data-zh="常见问题" data-ko="FAQ">FAQ</a>
+      <a class="nav-x" href="https://x.com/anvilnft_" target="_blank" rel="noopener">𝕏 @anvilnft_</a>
+    </div>
+    <div class="nav-right">
+      <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+    <div class="lang-pills" id="langPills">
+      <button class="lang-pill active" data-lang="en">EN</button>
+      <button class="lang-pill" data-lang="ja">JA</button>
+      <button class="lang-pill" data-lang="zh">ZH</button>
+      <button class="lang-pill" data-lang="ko">KO</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero" id="hero">
+    <div class="beam"></div>
+    <div class="particles" id="heroParticles"></div>
+    <div class="hero-inner">
+      <span class="badge ghost hero-anim d1" id="heroBadge">MINT &mdash; OPENS SOON</span>
+      <h1 class="hero-anim d2">ANVIL<span class="h1-grad" data-en="FORGE YOUR AGENT" data-ja="エージェントを鍛えろ" data-zh="锻造你的智能体" data-ko="에이전트를 단련하라">FORGE YOUR AGENT</span></h1>
+      <p class="sub hero-anim d3" data-en="The agent you build, not buy. Mint one. Forge it up. Only forging makes a Forge King." data-ja="買うのではなく、育てるエージェント。ミントして、鍛え上げよう。フォージキングは鍛造からのみ生まれる。" data-zh="你亲手打造的智能体，而不是买来的。铸造一个，不断锻造。只有锻造才能诞生锻造之王。" data-ko="사는 것이 아니라 직접 만드는 에이전트. 민트하고, 단련하라. 포지 킹은 단조를 통해서만 태어난다.">The agent you build, not buy. Mint one. Forge it up. Only forging makes a Forge King.</p>
+      <div class="hero-btns hero-anim d4">
+        <a class="btn btn-cyan" href="#mint" id="heroMintBtn">MINT &mdash; OPENS SOON</a>
+        <a class="btn btn-ghost" href="#forge" data-en="Try the forge ↓" data-ja="フォージを試す ↓" data-zh="试试锻造 ↓" data-ko="포지 체험하기 ↓">Try the forge ↓</a>
+      </div>
+      <div class="chips hero-anim d5">
+        <span class="chip" data-en="First mint FREE" data-ja="初回ミント無料" data-zh="首次铸造免费" data-ko="첫 민트 무료">First mint FREE</span>
+        <span class="chip" data-en="Forge 3 into 1" data-ja="3体を1体に鍛造" data-zh="3合1锻造" data-ko="3개를 1개로 단조">Forge 3 into 1</span>
+        <span class="chip" data-en="Mythic max 33" data-ja="ミシック最大33体" data-zh="神话最多33个" data-ko="미식 최대 33개">Mythic max 33</span>
+      </div>
+      <div class="mythic-ring"><img class="main" src="images/mythic.gif" alt="Mythic Forge King — animated GIF"></div>
+      <p class="tag hero-anim d7" data-i18n="heroTag"><b>MYTHIC &middot; FORGE KING</b> &mdash; max 33 ever. Only made by forging, never sold directly.</p>
+    </div>
+    <div class="hero-floats">
+      <div class="float-card fc1"><img src="images/common.gif" alt="Common agent — animated GIF"><div class="fc-label">COMMON</div></div>
+      <div class="float-card fc2"><img src="images/rare.gif" alt="Rare agent — animated GIF"><div class="fc-label">RARE</div></div>
+      <div class="float-card fc3"><img src="images/epic.gif" alt="Epic agent — animated GIF"><div class="fc-label">EPIC</div></div>
+    </div>
+    <div class="wordmark">ANVIL</div>
+  </section>
+
+</div>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span data-i18n="marquee">FIRST MINT FREE ◆ FORGE 3 INTO 1 ◆ MYTHIC MAX 33 ◆ ANIMATED GIF ART ◆ OPEN TO EVERYONE ◆ CLAIM TOKEN 10,000 PER NFT ◆ 3,333 SUPPLY ◆&nbsp;</span>
+    <span data-i18n="marquee">FIRST MINT FREE ◆ FORGE 3 INTO 1 ◆ MYTHIC MAX 33 ◆ ANIMATED GIF ART ◆ OPEN TO EVERYONE ◆ CLAIM TOKEN 10,000 PER NFT ◆ 3,333 SUPPLY ◆&nbsp;</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section id="stats">
+    <div class="stats reveal">
+      <div class="stat"><b class="count" data-target="3333">0</b><span data-en="Supply" data-ja="供給量" data-zh="供应量" data-ko="공급량">Supply</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+      <div class="stat"><b data-en="FREE" data-ja="無料" data-zh="免费" data-ko="무료">FREE</b><span data-en="First mint" data-ja="初回ミント" data-zh="首次铸造" data-ko="첫 민트">First mint</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+      <div class="stat"><b class="count" data-target="5">0</b><span data-en="Max / wallet" data-ja="1ウォレット最大" data-zh="每个钱包上限" data-ko="지갑당 최대">Max / wallet</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+      <div class="stat"><b class="count" data-target="33">0</b><span data-en="Mythic max" data-ja="ミシック最大" data-zh="神话上限" data-ko="미식 최대">Mythic max</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <p class="eyebrow reveal" data-en="◆ How it works" data-ja="◆ 仕組み" data-zh="◆ 运作方式" data-ko="◆ 작동 방식">◆ How it works</p>
+    <h2 class="reveal" data-en="How it works" data-ja="仕組み" data-zh="运作方式" data-ko="작동 방식">How it works</h2>
+    <p class="sub reveal" data-en="Three steps. Everything below is live at mint." data-ja="3つのステップ。以下はすべてミント時に実装済み。" data-zh="三个步骤。以下内容在铸造时全部上线。" data-ko="세 단계. 아래 내용은 모두 민트 시점에 구현됩니다.">Three steps. Everything below is live at mint.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="icon-box"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A1F0FD" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8.5v7M8.5 12h7"/></svg></div>
+        <div class="n" data-en="01 · MINT" data-ja="01 · ミント" data-zh="01 · 铸造" data-ko="01 · 민트">01 &middot; MINT</div>
+        <h3 data-en="First mint is free" data-ja="初回ミントは無料" data-zh="首次铸造免费" data-ko="첫 민트는 무료">First mint is free</h3>
+        <p data-en="One free mint per wallet (gas only). Paid mints after that are 0.001 BNB. Max 5 per wallet. Supply: 3,333." data-ja="ウォレットごとに1回無料（ガス代のみ）。その後の有料ミントは0.001 BNB。1ウォレット最大5体。供給量：3,333。" data-zh="每个钱包首次铸造免费（仅需gas）。之后的付费铸造为0.001 BNB。每个钱包最多5个。供应量：3,333。" data-ko="지갑당 1회 무료(가스비만). 이후 유료 민트는 0.001 BNB. 지갑당 최대 5개. 공급량: 3,333.">One free mint per wallet (gas only). Paid mints after that are 0.001 BNB. Max 5 per wallet. Supply: 3,333.</p>
+      </div>
+      <div class="step reveal">
+        <div class="icon-box"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A1F0FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></div>
+        <div class="n" data-en="02 · EVOLVE" data-ja="02 · 進化" data-zh="02 · 进化" data-ko="02 · 진화">02 &middot; EVOLVE</div>
+        <h3 data-en="Your agent grows" data-ja="エージェントは成長する" data-zh="你的智能体会成长" data-ko="에이전트가 성장한다">Your agent grows</h3>
+        <p data-en="Hold your agent and it gains a ring every 7 days. The art visibly changes with age — the GIF evolves as you hold it." data-ja="保有すると7日ごとにリングが1つ増える。アートは保有期間で目に見えて変化する — GIFが育っていく。" data-zh="持有智能体，每7天增加一个光环。艺术会随持有时间明显变化 — GIF会随你持有而进化。" data-ko="보유하면 7일마다 링이 하나씩 늘어난다. 아트는 보유 기간에 따라 눈에 띄게 변한다 — GIF가 보유하는 동안 진화한다.">Hold your agent and it gains a ring every 7 days. The art visibly changes with age &mdash; the GIF evolves as you hold it.</p>
+      </div>
+      <div class="step reveal">
+        <div class="icon-box"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A1F0FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5 20 10l-2.5 2.5L12 7l2.5-2.5z"/><path d="M11 8 3.5 15.5 6 18l7.5-7.5"/><path d="M3.5 15.5 2 20l4.5-1.5"/></svg></div>
+        <div class="n" data-en="03 · FORGE" data-ja="03 · 鍛造" data-zh="03 · 锻造" data-ko="03 · 단조">03 &middot; FORGE</div>
+        <h3 data-en="Burn to upgrade" data-ja="燃やして強化" data-zh="销毁以升级" data-ko="소각하여 강화">Burn to upgrade</h3>
+        <p data-en="Burn 3 Commons to forge a Rare. Burn 2 Rares to forge an Epic. Burn 1 of each tier to forge a Mythic Forge King. Forging is the only way to get a Mythic." data-ja="コモン3体を燃やしてレアを鍛造。レア2体を燃やしてエピックを鍛造。各ティア1体ずつを燃やしてミシック・フォージキングを鍛造。ミシックを手に入れる唯一の方法は鍛造。" data-zh="销毁3个普通锻造1个稀有。销毁2个稀有锻造1个史诗。销毁各等级1个锻造1个神话锻造之王。锻造是获得神话的唯一方式。" data-ko="커먼 3개를 소각해 레어를 단조. 레어 2개를 소각해 에픽을 단조. 각 티어 1개씩을 소각해 미식 포지 킹을 단조. 미식을 얻는 유일한 방법은 단조뿐이다.">Burn 3 Commons to forge a Rare. Burn 2 Rares to forge an Epic. Burn 1 of each tier to forge a Mythic Forge King. Forging is the only way to get a Mythic.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="tiers">
+    <p class="eyebrow reveal" data-en="◆ The tiers" data-ja="◆ ティア" data-zh="◆ 稀有度" data-ko="◆ 티어">◆ The tiers</p>
+    <h2 class="reveal" data-en="The four tiers" data-ja="4つのティア" data-zh="四个等级" data-ko="네 가지 티어">The four tiers</h2>
+    <p class="sub reveal" data-en="Animated GIF art. Tap a card to see it move — every agent pulses and orbits." data-ja="アニメーションGIFアート。カードをタップすると動く — すべてのエージェントが脈動し、周回する。" data-zh="动画GIF艺术。点击卡片查看动态 — 每个智能体都会脉动和环绕。" data-ko="애니메이션 GIF 아트. 카드를 탭하면 움직인다 — 모든 에이전트가 뛰고 공전한다.">Animated GIF art. Tap a card to see it move &mdash; every agent pulses and orbits.</p>
+    <div class="tiers">
+      <div class="tier common reveal">
+        <div class="tier-art"><img src="images/common.gif" alt="Common Forge Agent — animated GIF"><span class="tier-badge">COMMON</span></div>
+        <h3>COMMON</h3>
+        <div class="rule" data-i18n="rule1">The starting agent<br>Forge fuel: 3 &rarr; Rare</div>
+      </div>
+      <div class="tier rare reveal">
+        <div class="tier-art"><img src="images/rare.gif" alt="Rare Forge Agent — animated GIF"><span class="tier-badge">RARE</span></div>
+        <h3>RARE</h3>
+        <div class="rule" data-i18n="rule2">Forged from 3 Commons<br>Forge fuel: 2 &rarr; Epic</div>
+      </div>
+      <div class="tier epic reveal">
+        <div class="tier-art"><img src="images/epic.gif" alt="Epic Forge Agent — animated GIF"><span class="tier-badge">EPIC</span></div>
+        <h3>EPIC</h3>
+        <div class="rule" data-i18n="rule3">Forged from 2 Rares<br>Forge fuel: 1 of each &rarr; Mythic</div>
+      </div>
+      <div class="tier mythic reveal">
+        <div class="tier-art"><img src="images/mythic.gif" alt="Mythic Forge King — animated GIF"><span class="tier-badge">MYTHIC</span></div>
+        <h3>MYTHIC &middot; FORGE KING</h3>
+        <div class="rule" data-i18n="rule4">Forged from 1 Common + 1 Rare + 1 Epic<br>Max 33 ever &middot; never sold directly</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="spotlight">
+    <p class="eyebrow reveal" data-en="◆ Spotlight" data-ja="◆ スポットライト" data-zh="◆ 焦点" data-ko="◆ 스포트라이트">◆ Spotlight</p>
+    <h2 class="reveal" data-en="Meet the Forge King" data-ja="フォージキングに会おう" data-zh="认识锻造之王" data-ko="포지 킹을 만나세요">Meet the Forge King</h2>
+    <div class="spotlight reveal">
+      <div class="spot-art"><img src="images/mythic.gif" alt="Mythic Forge King — animated GIF"></div>
+      <div class="spot-body">
+        <p class="sub" data-en="The crown of the forge. A Mythic Forge King is never sold directly — it only exists because someone burned a Common, a Rare and an Epic to make it. At most 33 can ever exist." data-ja="鍛造の頂点。ミシック・フォージキングは直接販売されません — コモン1体、レア1体、エピック1体を燃やした者だけが手に入れます。最大33体までしか存在しません。" data-zh="锻造之巅。神话锻造之王从不直接出售 — 只有销毁一个普通、一个稀有和一个史诗的人才能拥有它。最多只存在33个。" data-ko="단조의 정점. 미식 포지 킹은 직접 판매되지 않습니다 — 커먼 1개, 레어 1개, 에픽 1개를 소각한 사람만이 얻을 수 있습니다. 최대 33개만 존재할 수 있습니다.">The crown of the forge. A Mythic Forge King is never sold directly &mdash; it only exists because someone burned a Common, a Rare and an Epic to make it. At most 33 can ever exist.</p>
+        <div class="spot-chips">
+          <span class="chip spot-chip" data-en="Max 33 ever" data-ja="最大33体" data-zh="最多33个" data-ko="최대 33개">Max 33 ever</span>
+          <span class="chip spot-chip" data-en="Only by forging" data-ja="鍛造のみ" data-zh="只能通过锻造" data-ko="단조로만">Only by forging</span>
+          <span class="chip spot-chip" data-en="Never sold directly" data-ja="直接販売なし" data-zh="从不直接出售" data-ko="직접 판매 없음">Never sold directly</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="forge">
+    <p class="eyebrow reveal" data-en="◆ The forge" data-ja="◆ フォージ" data-zh="◆ 锻造" data-ko="◆ 포지">◆ The forge</p>
+    <h2 class="reveal" data-en="Try the forge — demo" data-ja="フォージを試す — デモ" data-zh="试试锻造 — 演示" data-ko="포지 체험 — 데모">Try the forge &mdash; demo</h2>
+    <p class="sub reveal" data-en="A front-end demo only. No wallet, no chain, nothing is burned for real. You start with 12 demo Commons." data-ja="フロントエンドのデモのみ。ウォレット不要、チェーン不要、実際に燃やすものなし。デモ用コモン12体からスタート。" data-zh="仅前端演示。无需钱包、无需链条，没有任何真实销毁。你从12个演示普通开始。" data-ko="프론트엔드 데모일 뿐. 지갑도, 체인도 필요 없고, 실제로 소각되는 것은 없습니다. 데모 커먼 12개로 시작합니다.">A front-end demo only. No wallet, no chain, nothing is burned for real. You start with 12 demo Commons.</p>
+    <div class="demo reveal">
+      <div class="counters">
+        <div class="c common"><b id="cnt-common">12</b><span>Common</span></div>
+        <div class="c rare"><b id="cnt-rare">0</b><span>Rare</span></div>
+        <div class="c epic"><b id="cnt-epic">0</b><span>Epic</span></div>
+        <div class="c mythic"><b id="cnt-mythic">0</b><span>Mythic</span></div>
+        <div class="c"><b id="cnt-burned">0</b><span data-en="Burned" data-ja="バーン済み" data-zh="已销毁" data-ko="소각됨">Burned</span></div>
+      </div>
+      <div class="forge-btns">
+        <button class="btn-forge" id="btn-rare" onclick="forgeRare()" data-en="Forge Rare — burn 3 Commons + 0.001 BNB" data-ja="レアを鍛造 — コモン3体 + 0.001 BNBを燃やす" data-zh="锻造稀有 — 销毁3个普通 + 0.001 BNB" data-ko="레어 단조 — 커먼 3개 + 0.001 BNB 소각">Forge Rare &mdash; burn 3 Commons + 0.001 BNB</button>
+        <button class="btn-forge" id="btn-epic" onclick="forgeEpic()" data-en="Forge Epic — burn 2 Rares + 0.001 BNB" data-ja="エピックを鍛造 — レア2体 + 0.001 BNBを燃やす" data-zh="锻造史诗 — 销毁2个稀有 + 0.001 BNB" data-ko="에픽 단조 — 레어 2개 + 0.001 BNB 소각">Forge Epic &mdash; burn 2 Rares + 0.001 BNB</button>
+        <button class="btn-forge" id="btn-mythic" onclick="forgeMythic()" data-en="Forge Mythic — burn 1 Common + 1 Rare + 1 Epic + 0.001 BNB" data-ja="ミシックを鍛造 — コモン1体 + レア1体 + エピック1体 + 0.001 BNBを燃やす" data-zh="锻造神话 — 销毁1个普通 + 1个稀有 + 1个史诗 + 0.001 BNB" data-ko="미식 단조 — 커먼 1개 + 레어 1개 + 에픽 1개 + 0.001 BNB 소각">Forge Mythic &mdash; burn 1 Common + 1 Rare + 1 Epic + 0.001 BNB</button>
+      </div>
+      <div class="result" id="result"><p>Pick a forge above to see it work.</p></div>
+      <button class="btn-ghost2" onclick="resetDemo()" data-en="Reset demo" data-ja="デモをリセット" data-zh="重置演示" data-ko="데모 초기화">Reset demo</button>
+      <button class="btn-ghost2" onclick="addCommons()" data-en="+3 demo Commons" data-ja="デモ用コモン +3" data-zh="+3个演示普通" data-ko="데모 커먼 +3개">+3 demo Commons</button>
+    </div>
+    <div class="note reveal" data-i18n="noteHtml"><b>Demo note:</b> Forge fees in the real collection are 0.001 BNB per forge, paid to a visible on-chain treasury that funds the weekly forge leaderboard (paid in BNB). The first 100 forges are gas-only, to seed the loop.</div>
+  </section>
+
+  <section id="mint">
+    <p class="eyebrow reveal" data-en="◆ Mint" data-ja="◆ ミント" data-zh="◆ 铸造" data-ko="◆ 민트">◆ Mint</p>
+    <h2 class="reveal" data-en="Mint" data-ja="ミント" data-zh="铸造" data-ko="민트">Mint</h2>
+    <div class="mintbox reveal">
+      <span class="badge" id="mintBadge">MINT &mdash; OPENS SOON</span>
+      <p data-en="Mint is open to everyone — no Agent ID needed. Your first mint is FREE (gas only), then 0.001 BNB. Max 5 per wallet." data-ja="ミントは誰でも参加可能 — Agent ID不要。初回ミントは無料（ガス代のみ）、その後は0.001 BNB。1ウォレット最大5体。" data-zh="铸造面向所有人开放 — 无需Agent ID。首次铸造免费（仅需gas），之后为0.001 BNB。每个钱包最多5个。" data-ko="민트는 모두에게 열려 있습니다 — Agent ID 불필요. 첫 민트는 무료(가스비만), 이후 0.001 BNB. 지갑당 최대 5개.">Mint is open to everyone &mdash; no Agent ID needed. Your first mint is FREE (gas only), then 0.001 BNB. Max 5 per wallet.</p>
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="wallet" role="tab" data-en="Wallet" data-ja="ウォレット" data-zh="钱包" data-ko="지갑">Wallet</button>
+        <button class="tab-btn" data-tab="agent" role="tab" data-en="Agent" data-ja="エージェント" data-zh="智能体" data-ko="에이전트">Agent</button>
+      </div>
+      <div class="tab-panel active" id="tab-wallet">
+      <div class="mrow"><span data-en="Price" data-ja="価格" data-zh="价格" data-ko="가격">Price</span><b data-en="Free first mint" data-ja="初回ミント無料" data-zh="首次铸造免费" data-ko="첫 민트 무료">Free first mint</b></div>
+      <div class="mrow"><span data-en="Status" data-ja="ステータス" data-zh="状态" data-ko="상태">Status</span><b id="mintStatusVal">&hellip;</b></div>
+      <div class="mrow"><span data-en="Minted" data-ja="ミント済み" data-zh="已铸造" data-ko="민트됨">Minted</span><b id="mintedCount">&hellip;</b></div>
+      <div class="mrow"><span data-en="Limit" data-ja="上限" data-zh="上限" data-ko="상한">Limit</span><b data-en="5 per wallet" data-ja="1ウォレット5体まで" data-zh="每个钱包5个" data-ko="지갑당 5개">5 per wallet</b></div>
+      <div class="mrow"><span data-en="Supply" data-ja="供給量" data-zh="供应量" data-ko="공급량">Supply</span><b>3,333</b></div>
+      <div class="qty-row" id="qtyRow">
+        <button class="qtybtn on" data-qty="1" onclick="setQty(1)">1</button>
+        <button class="qtybtn" data-qty="2" onclick="setQty(2)">2</button>
+        <button class="qtybtn" data-qty="3" onclick="setQty(3)">3</button>
+        <button class="qtybtn" data-qty="4" onclick="setQty(4)">4</button>
+        <button class="qtybtn" data-qty="5" onclick="setQty(5)">5</button>
+      </div>
+      <p class="total-cost" id="totalCost"></p>
+      <p class="minted-by-you" id="mintedByYou"></p>
+      <button class="btn btn-ghost" id="connectBtn" onclick="connectWallet()">Connect wallet</button>
+      <button class="btn btn-mint" id="mintBtn" onclick="mintNow()" disabled>MINT &mdash; OPENS SOON</button>
+      <p class="mint-msg" id="mintMsg" aria-live="polite"></p>
+      <p class="no-wallet" id="noWalletWarn"></p>
+      </div>
+      </div>
+      <div class="tab-panel" id="tab-agent">
+        <h3 class="agent-title" data-en="Mint via your AI agent" data-ja="AIエージェントでミント" data-zh="通过AI智能体铸造" data-ko="AI 에이전트로 민트">Mint via your AI agent</h3>
+        <p class="agent-intro" data-en="Mint with your AI agent (Binance Web3 wallet / baw) — copy the prompt below and send it to your agent." data-ja="AIエージェント（Binance Web3ウォレット / baw）でミント — 下のプロンプトをコピーしてエージェントに送ってください。" data-zh="通过你的AI智能体（Binance Web3钱包 / baw）铸造 — 复制下面的提示词并发送给你的智能体。" data-ko="AI 에이전트(Binance Web3 지갑 / baw)로 민트 — 아래 프롬프트를 복사해 에이전트에게 보내세요.">Mint with your AI agent (Binance Web3 wallet / baw) — copy the prompt below and send it to your agent.</p>
+        <label class="prompt-label" data-en="Agent prompt (English)" data-ja="エージェント用プロンプト（英語）" data-zh="智能体提示词（英文）" data-ko="에이전트 프롬프트(영어)">Agent prompt (English)</label>
+        <div class="prompt-box"><code id="agentPrompt">Mint 1 ANVIL NFT from the ANVIL contract 0xdF3d5D3D9870cb4AB9bC8e8A8f0bA5396a8A3ECf using my Binance Web3 wallet. First mint is FREE (gas only), max 5 per wallet.</code></div>
+        <button class="btn btn-cyan copy-btn" id="copyPromptBtn" data-en="Copy prompt" data-ja="プロンプトをコピー" data-zh="复制提示词" data-ko="프롬프트 복사">Copy prompt</button>
+        <p class="copy-status" id="copyStatus" aria-live="polite"></p>
+        <p class="agent-note" data-en="The contract is deployed. Copy the prompt above and send it to your agent." data-ja="コントラクトはデプロイ済みです。上のプロンプトをコピーしてエージェントに送ってください。" data-zh="合约已部署。复制上方提示词并发送给你的智能体。" data-ko="컨트랙트가 배포되었습니다. 위 프롬프트를 복사해 에이전트에게 보내세요.">The contract is deployed. Copy the prompt above and send it to your agent.</p>
+        <p class="agent-rules" data-en="Same rules: first mint free, max 5 per wallet, 0.001 BNB after the free mint." data-ja="ルールは同じ：初回ミント無料、1ウォレット最大5体、無料の後は0.001 BNB。" data-zh="规则相同：首次铸造免费，每个钱包最多5个，免费之后为0.001 BNB。" data-ko="규칙은 동일: 첫 민트 무료, 지갑당 최대 5개, 무료 이후 0.001 BNB.">Same rules: first mint free, max 5 per wallet, 0.001 BNB after the free mint.</p>
+        <p class="agent-rules"><a href="skill.md" style="color:var(--pale)" data-en="Read the ANVIL agent skill →" data-ja="ANVILエージェントスキルを読む →" data-zh="阅读ANVIL智能体技能 →" data-ko="ANVIL 에이전트 스킬 읽기 →">Read the ANVIL agent skill &rarr;</a></p>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="market">
+    <p class="eyebrow reveal" data-en="◆ Marketplace" data-ja="◆ マーケットプレイス" data-zh="◆ 市场" data-ko="◆ 마켓플레이스">◆ Marketplace</p>
+    <h2 class="reveal" data-en="Trade on the ANVIL market" data-ja="ANVILマーケットで取引" data-zh="在ANVIL市场交易" data-ko="ANVIL 마켓에서 거래">Trade on the ANVIL market</h2>
+    <p class="sub reveal" data-en="Our own escrow marketplace — list, buy, cancel and update price. The NFT never sits in a stranger's wallet." data-ja="独自のエスクローマーケットプレイス — 出品、購入、キャンセル、価格変更。NFTが他人のウォレットに置かれることはありません。" data-zh="我们自己的托管市场 — 上架、购买、取消和改价。NFT永远不会放在陌生人的钱包里。" data-ko="자체 에스크로 마켓플레이스 — 등록, 구매, 취소, 가격 변경. NFT가 낯선 사람의 지갑에 머무는 일은 없습니다.">Our own escrow marketplace &mdash; list, buy, cancel and update price. The NFT never sits in a stranger's wallet.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="n" data-en="01 · LIST" data-ja="01 · 出品" data-zh="01 · 上架" data-ko="01 · 등록">01 &middot; LIST</div>
+        <h3 data-en="List it" data-ja="出品する" data-zh="上架" data-ko="등록하기">List it</h3>
+        <p data-en="Set your price and list. Your ANVIL moves into the marketplace contract." data-ja="価格を設定して出品。ANVILはマーケットプレイスのコントラクトに移動します。" data-zh="设定价格并上架。你的ANVIL将移入市场合约。" data-ko="가격을 정하고 등록. ANVIL은 마켓플레이스 컨트랙트로 이동합니다.">Set your price and list. Your ANVIL moves into the marketplace contract.</p>
+      </div>
+      <div class="step reveal">
+        <div class="n" data-en="02 · ESCROW" data-ja="02 · エスクロー" data-zh="02 · 托管" data-ko="02 · 에스크로">02 &middot; ESCROW</div>
+        <h3 data-en="Escrow holds it" data-ja="エスクローが預かる" data-zh="托管持有" data-ko="에스크로가 보관">Escrow holds it</h3>
+        <p data-en="The contract holds the NFT until a buyer pays. Cancel any time and it comes straight back to you." data-ja="買い手が支払うまで、コントラクトがNFTを預かります。いつでもキャンセルでき、そのまま返ってきます。" data-zh="合约会持有NFT，直到买家付款。随时可以取消，NFT会直接退回给你。" data-ko="구매자가 지불할 때까지 컨트랙트가 NFT를 보관합니다. 언제든 취소하면 바로 돌려받습니다.">The contract holds the NFT until a buyer pays. Cancel any time and it comes straight back to you.</p>
+      </div>
+      <div class="step reveal">
+        <div class="n" data-en="03 · SETTLE" data-ja="03 · 決済" data-zh="03 · 结算" data-ko="03 · 정산">03 &middot; SETTLE</div>
+        <h3 data-en="Settle instantly" data-ja="即座に決済" data-zh="即时结算" data-ko="즉시 정산">Settle instantly</h3>
+        <p data-en="A buyer pays and the NFT moves to them at once. The 5% fee goes to the owner." data-ja="買い手が支払うと、NFTはすぐに相手に移ります。5%の手数料はオーナーへ。" data-zh="买家付款后，NFT会立即转移给对方。5%的费用归所有者。" data-ko="구매자가 지불하면 NFT가 즉시 이전됩니다. 5% 수수료는 소유자에게 돌아갑니다.">A buyer pays and the NFT moves to them at once. The 5% fee goes to the owner.</p>
+      </div>
+    </div>
+    <div class="note reveal" data-en="Marketplace contract: 0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041 — escrow, 5% fee. Listing goes live with the launch." data-ja="マーケットプレイスのコントラクト：0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041 — エスクロー、手数料5%。出品はローンチと同時に開始します。" data-zh="市场合约：0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041 — 托管，费用5%。上架将随发布同时上线。" data-ko="마켓플레이스 컨트랙트: 0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041 — 에스크로, 수수료 5%. 등록은 출시와 함께 시작합니다.">Marketplace contract: 0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041 &mdash; escrow, 5% fee. Listing goes live with the launch.</div>
+  </section>
+
+  <section id="token">
+    <p class="eyebrow reveal" data-en="◆ Claim token" data-ja="◆ クレームトークン" data-zh="◆ 领取代币" data-ko="◆ 클레임 토큰">◆ Claim token</p>
+    <h2 class="reveal" data-en="Claim 10,000 per ANVIL" data-ja="ANVIL 1体につき10,000をクレーム" data-zh="每个ANVIL领取10,000" data-ko="ANVIL당 10,000 클레임">Claim 10,000 per ANVIL</h2>
+    <p class="sub reveal" data-en="Every ANVIL NFT can claim tokens once — 10,000 per tokenId. One claim per NFT, ever." data-ja="すべてのANVIL NFTは1回だけトークンをクレームできます — 1トークンIDにつき10,000。1つのNFTにつき1回限り。" data-zh="每个ANVIL NFT只能领取一次代币 — 每个tokenId 10,000。每个NFT仅限一次。" data-ko="모든 ANVIL NFT는 한 번만 토큰을 클레임할 수 있습니다 — tokenId당 10,000. NFT당 1회 한정.">Every ANVIL NFT can claim tokens once &mdash; 10,000 per tokenId. One claim per NFT, ever.</p>
+    <div class="stats reveal">
+      <div class="stat"><b>100,000,000</b><span data-en="Cap" data-ja="上限" data-zh="上限" data-ko="발행 한도">Cap</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+      <div class="stat"><b>10,000</b><span data-en="Per NFT" data-ja="1 NFTあたり" data-zh="每个NFT" data-ko="NFT당">Per NFT</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+      <div class="stat"><b>0.0004 BNB</b><span data-en="Claim fee" data-ja="クレーム手数料" data-zh="领取费用" data-ko="클레임 수수료">Claim fee</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+      <div class="stat"><b>66,670,000</b><span data-en="To owner at deploy" data-ja="デプロイ時にオーナーへ" data-zh="部署时归所有者" data-ko="배포 시 소유자에게">To owner at deploy</span><span class="prop" data-en="LOCKED" data-ja="確定" data-zh="已锁定" data-ko="확정">LOCKED</span></div>
+    </div>
+    <p class="mini-h reveal" data-en="How claiming works" data-ja="クレームの仕組み" data-zh="领取方式" data-ko="클레임 방법">How claiming works</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="n" data-en="01 · HOLD" data-ja="01 · 保有" data-zh="01 · 持有" data-ko="01 · 보유">01 &middot; HOLD</div>
+        <h3 data-en="Hold an ANVIL" data-ja="ANVILを保有" data-zh="持有ANVIL" data-ko="ANVIL 보유">Hold an ANVIL</h3>
+        <p data-en="Any ANVIL NFT can claim — one claim per tokenId, ever." data-ja="どのANVIL NFTでもクレーム可能 — 1トークンIDにつき1回限り。" data-zh="任何ANVIL NFT都可以领取 — 每个tokenId仅限一次。" data-ko="어떤 ANVIL NFT든 클레임 가능 — tokenId당 1회 한정.">Any ANVIL NFT can claim &mdash; one claim per tokenId, ever.</p>
+      </div>
+      <div class="step reveal">
+        <div class="n" data-en="02 · CONNECT" data-ja="02 · 接続" data-zh="02 · 连接" data-ko="02 · 연결">02 &middot; CONNECT</div>
+        <h3 data-en="Connect your wallet" data-ja="ウォレットを接続" data-zh="连接钱包" data-ko="지갑 연결">Connect your wallet</h3>
+        <p data-en="Connect the wallet that holds the NFT. The claim goes to the holder's wallet." data-ja="NFTを保有するウォレットを接続。クレームは保有者のウォレットへ。" data-zh="连接持有该NFT的钱包。领取将发放到持有者的钱包。" data-ko="NFT를 보유한 지갑을 연결. 클레임은 보유자 지갑으로 지급됩니다.">Connect the wallet that holds the NFT. The claim goes to the holder's wallet.</p>
+      </div>
+      <div class="step reveal">
+        <div class="n" data-en="03 · CLAIM" data-ja="03 · クレーム" data-zh="03 · 领取" data-ko="03 · 클레임">03 &middot; CLAIM</div>
+        <h3 data-en="Claim — fee in BNB only" data-ja="クレーム — 手数料はBNBのみ" data-zh="领取 — 费用仅以BNB支付" data-ko="클레임 — 수수료는 BNB로만">Claim &mdash; fee in BNB only</h3>
+        <p data-en="Pay the 0.0004 BNB claim fee per NFT and receive 10,000 tokens. Fee in BNB only, never in other tokens." data-ja="NFTごとに0.0004 BNBの手数料を支払い、10,000トークンを受け取る。手数料はBNBのみ。" data-zh="每个NFT支付0.0004 BNB领取费用，获得10,000代币。费用仅以BNB支付。" data-ko="NFT당 0.0004 BNB 클레임 수수료를 지불하고 10,000 토큰을 받습니다. 수수료는 BNB로만.">Pay the 0.0004 BNB claim fee per NFT and receive 10,000 tokens. Fee in BNB only, never in other tokens.</p>
+      </div>
+    </div>
+    <div class="note reveal" data-en="Token symbol: $HAMR. The token has no market until/unless one exists — claiming gives you tokens, it does not promise a price, a return, or income." data-ja="トークンシンボル：$HAMR。このトークンに市場ができるまでは価値はありません — クレームでトークンが得られますが、価格、リターン、収入を約束するものではありません。" data-zh="代币符号：$HAMR。在市场出现之前，该代币没有市场 — 领取可以获得代币，但不承诺价格、回报或收入。" data-ko="토큰 심볼: $HAMR. 시장이 생기기 전까지 이 토큰에는 시장이 없습니다 — 클레임으로 토큰을 얻을 수 있지만 가격, 수익, 수입을 약속하지 않습니다.">Token symbol: $HAMR. The token has no market until/unless one exists &mdash; claiming gives you tokens, it does not promise a price, a return, or income.</div>
+  <div style="text-align:center;margin-top:20px"><a class="btn btn-cyan" href="claim.html" data-en="CLAIM $HAMR →" data-ja="$HAMRを請求 →" data-zh="领取 $HAMR →" data-ko="$HAMR 청구 →">CLAIM $HAMR &rarr;</a></div>
+  </section>
+
+  <section id="roadmap">
+    <p class="eyebrow reveal" data-en="◆ Roadmap" data-ja="◆ ロードマップ" data-zh="◆ 路线图" data-ko="◆ 로드맵">◆ Roadmap</p>
+    <h2 class="reveal" data-en="Roadmap" data-ja="ロードマップ" data-zh="路线图" data-ko="로드맵">Roadmap</h2>
+    <p class="sub reveal" data-en="Phases follow the launch. Nothing here is a promise of returns." data-ja="フェーズはローンチに沿って進行します。ここにあるものはリターンの約束ではありません。" data-zh="各阶段随发布推进。此处内容不承诺任何回报。" data-ko="단계는 출시를 따라 진행됩니다. 여기에 있는 것은 수익에 대한 약속이 아닙니다.">Phases follow the launch. Nothing here is a promise of returns.</p>
+    <div class="timeline">
+      <div class="phase now reveal">
+        <span class="pill" data-en="PHASE 0 · NOW" data-ja="フェーズ0 · 現在" data-zh="阶段0 · 现在" data-ko="페이즈 0 · 현재">PHASE 0 · NOW</span><span class="prop" data-en="LIVE" data-ja="稼働中" data-zh="已上线" data-ko="라이브">LIVE</span>
+        <h3 data-en="Contracts deployed" data-ja="コントラクトをデプロイ済み" data-zh="合约已部署" data-ko="컨트랙트 배포 완료">Contracts deployed</h3>
+        <p data-en="Contracts are live on BNB Chain. Mint opens soon — the button above switches to MINT NOW when it opens." data-ja="コントラクトはBNBチェーンで稼働中。ミントはまもなく開始 — 開始すると上のボタンが「今すぐミント」に変わります。" data-zh="合约已在BNB链上线。铸造即将开放 — 开放后上方按钮将变为“立即铸造”。" data-ko="컨트랙트가 BNB 체인에서 작동 중입니다. 민트는 곧 오픈합니다 — 오픈하면 위 버튼이 “지금 민트”로 바뀝니다.">Contracts are live on BNB Chain. Mint opens soon &mdash; the button above switches to MINT NOW when it opens.</p>
+      </div>
+      <div class="phase reveal">
+        <span class="pill" data-en="PHASE 1 · NEXT" data-ja="フェーズ1 · 次" data-zh="阶段1 · 下一步" data-ko="페이즈 1 · 다음">PHASE 1 · NEXT</span><span class="prop" data-en="PROPOSED" data-ja="提案" data-zh="拟定" data-ko="제안">PROPOSED</span>
+        <h3 data-en="Mint opens" data-ja="ミント開始" data-zh="铸造开放" data-ko="민트 오픈">Mint opens</h3>
+        <p data-en="Free first mint per wallet. Forge live on day one." data-ja="ウォレットごとに初回ミント無料。フォージは初日から稼働。" data-zh="每个钱包首次铸造免费。锻造在第一天即上线。" data-ko="지갑당 첫 민트 무료. 포지는 첫날부터 작동.">Free first mint per wallet. Forge live on day one.</p>
+      </div>
+      <div class="phase reveal">
+        <span class="pill" data-en="PHASE 2" data-ja="フェーズ2" data-zh="阶段2" data-ko="페이즈 2">PHASE 2</span><span class="prop" data-en="PROPOSED" data-ja="提案" data-zh="拟定" data-ko="제안">PROPOSED</span>
+        <h3 data-en="Marketplace live" data-ja="マーケットプレイス稼働" data-zh="市场上线" data-ko="마켓플레이스 오픈">Marketplace live</h3>
+        <p data-en="List, buy, cancel and update price on the escrow market." data-ja="エスクロー市場で出品、購入、キャンセル、価格変更。" data-zh="在托管市场中上架、购买、取消和改价。" data-ko="에스크로 마켓에서 등록, 구매, 취소, 가격 변경.">List, buy, cancel and update price on the escrow market.</p>
+      </div>
+      <div class="phase reveal">
+        <span class="pill" data-en="PHASE 3" data-ja="フェーズ3" data-zh="阶段3" data-ko="페이즈 3">PHASE 3</span><span class="prop" data-en="PROPOSED" data-ja="提案" data-zh="拟定" data-ko="제안">PROPOSED</span>
+        <h3 data-en="Claim token live" data-ja="クレームトークン稼働" data-zh="领取代币上线" data-ko="클레임 토큰 오픈">Claim token live</h3>
+        <p data-en="Claim 10,000 tokens per ANVIL, one-time per tokenId." data-ja="ANVIL 1体につき10,000トークンをクレーム。1トークンIDにつき1回限り。" data-zh="每个ANVIL领取10,000代币，每个tokenId仅限一次。" data-ko="ANVIL당 10,000 토큰 클레임, tokenId당 1회 한정.">Claim 10,000 tokens per ANVIL, one-time per tokenId.</p>
+      </div>
+      <div class="phase reveal">
+        <span class="pill" data-en="PHASE 4 · LATER" data-ja="フェーズ4 · 後日" data-zh="阶段4 · 之后" data-ko="페이즈 4 · 이후">PHASE 4 · LATER</span><span class="prop" data-en="PROPOSED" data-ja="提案" data-zh="拟定" data-ko="제안">PROPOSED</span>
+        <h3 data-en="Leaderboard + events" data-ja="リーダーボード + イベント" data-zh="排行榜 + 活动" data-ko="리더보드 + 이벤트">Leaderboard + events</h3>
+        <p data-en="Weekly forge leaderboard paid in BNB from the forge-fee treasury, plus community events." data-ja="鍛造手数料のトレジャリーからBNBで支払われる週間フォージリーダーボードと、コミュニティイベント。" data-zh="每周锻造排行榜由锻造费用金库以BNB支付，另有社区活动。" data-ko="단조 수수료 트레저리에서 BNB로 지급되는 주간 포지 리더보드와 커뮤니티 이벤트.">Weekly forge leaderboard paid in BNB from the forge-fee treasury, plus community events.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="params">
+    <p class="eyebrow reveal" data-en="◆ Parameters" data-ja="◆ パラメータ" data-zh="◆ 参数" data-ko="◆ 파라미터">◆ Parameters</p>
+    <h2 class="reveal" data-en="Parameters" data-ja="パラメータ" data-zh="参数" data-ko="파라미터">Parameters</h2>
+    <p class="sub reveal" data-en="All values below are locked (2026-11-14). Name is ANVIL, symbol ANVIL." data-ja="以下の値はすべて2026年11月14日に確定しました。名前はANVIL、シンボルはANVIL。" data-zh="以下所有数值已于2026年11月14日锁定。名称为ANVIL，符号为ANVIL。" data-ko="아래 값은 모두 2026년 11월 14일에 확정되었습니다. 이름은 ANVIL, 심볼은 ANVIL.">All values below are locked (2026-11-14). Name is ANVIL, symbol ANVIL.</p>
+    <table class="reveal">
+      <tr><td data-en="Name / symbol" data-ja="名前 / シンボル" data-zh="名称 / 符号" data-ko="이름 / 심볼">Name / symbol</td><td><b>ANVIL</b> / ANVIL</td></tr>
+      <tr><td data-en="Chain" data-ja="チェーン" data-zh="链" data-ko="체인">Chain</td><td data-en="BNB Chain" data-ja="BNBチェーン" data-zh="BNB链" data-ko="BNB 체인">BNB Chain</td></tr>
+      <tr><td data-en="Supply" data-ja="供給量" data-zh="供应量" data-ko="공급량">Supply</td><td>3,333</td></tr>
+      <tr><td data-en="First mint" data-ja="初回ミント" data-zh="首次铸造" data-ko="첫 민트">First mint</td><td data-en="FREE per wallet (gas only). Open to everyone — no Agent ID needed." data-ja="ウォレットごとに無料（ガス代のみ）。誰でも参加可能 — Agent ID不要。" data-zh="每个钱包免费（仅需gas）。面向所有人开放 — 无需Agent ID。" data-ko="지갑당 무료(가스비만). 모두에게 열려 있음 — Agent ID 불필요.">FREE per wallet (gas only). Open to everyone &mdash; no Agent ID needed.</td></tr>
+      <tr><td data-en="Paid mints" data-ja="有料ミント" data-zh="付费铸造" data-ko="유료 민트">Paid mints</td><td data-en="0.001 BNB each, after the free one" data-ja="無料の後、1回あたり0.001 BNB" data-zh="免费之后，每次0.001 BNB" data-ko="무료 이후, 회당 0.001 BNB">0.001 BNB each, after the free one</td></tr>
+      <tr><td data-en="Max per wallet" data-ja="1ウォレット最大" data-zh="每个钱包上限" data-ko="지갑당 최대">Max per wallet</td><td>5</td></tr>
+      <tr><td data-en="Team reserve" data-ja="チーム保有分" data-zh="团队预留" data-ko="팀 보유분">Team reserve</td><td data-en="0% — no owner mint (max 5% disclosed)" data-ja="0% — オーナーミントなし（最大5%を公開）" data-zh="0% — 无所有者铸造（最多5%，已公开）" data-ko="0% — 오너 민트 없음(최대 5% 공개)">0% &mdash; no owner mint (max 5% disclosed)</td></tr>
+      <tr><td data-en="Forge: Rare" data-ja="鍛造：レア" data-zh="锻造：稀有" data-ko="단조: 레어">Forge: Rare</td><td data-en="Burn 3 Commons + 0.001 BNB → 1 Rare" data-ja="コモン3体 + 0.001 BNBを燃やす → レア1体" data-zh="销毁3个普通 + 0.001 BNB → 1个稀有" data-ko="커먼 3개 + 0.001 BNB 소각 → 레어 1개">Burn 3 Commons + 0.001 BNB &rarr; 1 Rare</td></tr>
+      <tr><td data-en="Forge: Epic" data-ja="鍛造：エピック" data-zh="锻造：史诗" data-ko="단조: 에픽">Forge: Epic</td><td data-en="Burn 2 Rares + 0.001 BNB → 1 Epic" data-ja="レア2体 + 0.001 BNBを燃やす → エピック1体" data-zh="销毁2个稀有 + 0.001 BNB → 1个史诗" data-ko="레어 2개 + 0.001 BNB 소각 → 에픽 1개">Burn 2 Rares + 0.001 BNB &rarr; 1 Epic</td></tr>
+      <tr><td data-en="Forge: Mythic" data-ja="鍛造：ミシック" data-zh="锻造：神话" data-ko="단조: 미식">Forge: Mythic</td><td data-en="Burn 1 Common + 1 Rare + 1 Epic + 0.001 BNB → 1 Mythic, max 33" data-ja="コモン1体 + レア1体 + エピック1体 + 0.001 BNBを燃やす → ミシック1体、最大33体" data-zh="销毁1个普通 + 1个稀有 + 1个史诗 + 0.001 BNB → 1个神话，最多33个" data-ko="커먼 1개 + 레어 1개 + 에픽 1개 + 0.001 BNB 소각 → 미식 1개, 최대 33개">Burn 1 Common + 1 Rare + 1 Epic + 0.001 BNB &rarr; 1 Mythic, max 33</td></tr>
+      <tr><td data-en="Forge fee" data-ja="鍛造手数料" data-zh="锻造费用" data-ko="단조 수수료">Forge fee</td><td data-en="0.001 BNB to a visible on-chain treasury funding the weekly forge leaderboard (paid in BNB)" data-ja="0.001 BNBを、週間フォージリーダーボード（BNBで支払い）の資金となる公開オンチェーントレジャリーへ" data-zh="0.001 BNB进入公开的链上金库，用于资助每周锻造排行榜（以BNB支付）" data-ko="0.001 BNB는 주간 포지 리더보드(BNB로 지급) 자금을 위한 공개 온체인 트레저리로">0.001 BNB to a visible on-chain treasury funding the weekly forge leaderboard (paid in BNB)</td></tr>
+      <tr><td data-en="First 100 forges" data-ja="最初の100回の鍛造" data-zh="前100次锻造" data-ko="처음 100회 단조">First 100 forges</td><td data-en="Gas only (to seed the loop)" data-ja="ガス代のみ（循環を始めるため）" data-zh="仅需gas（用于启动循环）" data-ko="가스비만(순환 시작용)">Gas only (to seed the loop)</td></tr>
+      <tr><td data-en="Evolution" data-ja="進化" data-zh="进化" data-ko="진화">Evolution</td><td data-en="Every 7 days held, the agent gains a ring" data-ja="保有7日ごとにエージェントはリングを1つ得る" data-zh="每持有7天，智能体增加一个光环" data-ko="보유 7일마다 에이전트가 링 하나를 얻는다">Every 7 days held, the agent gains a ring</td></tr>
+      <tr><td data-en="Royalty" data-ja="ロイヤリティ" data-zh="版税" data-ko="로열티">Royalty</td><td data-en="2.5% (may be optional on some marketplaces — disclosed)" data-ja="2.5%（一部のマーケットプレイスでは任意の場合あり — 公開）" data-zh="2.5%（部分市场可能为可选项 — 已公开）" data-ko="2.5%(일부 마켓플레이스에서는 선택 사항일 수 있음 — 공개)">2.5% (may be optional on some marketplaces &mdash; disclosed)</td></tr>
+      <tr><td data-en="Claim token" data-ja="クレームトークン" data-zh="领取代币" data-ko="클레임 토큰">Claim token</td><td data-en="$HAMR — 10,000 per NFT, one-time per tokenId, fee 0.0004 BNB" data-ja="$HAMR — 1体につき10,000、トークンIDごとに1回のみ、手数料0.0004 BNB" data-zh="$HAMR — 每个NFT 10,000，每tokenId仅一次，费用0.0004 BNB" data-ko="$HAMR — NFT당 10,000, tokenId당 1회, 수수료 0.0004 BNB">$HAMR &mdash; 10,000 per NFT, one-time per tokenId, fee 0.0004 BNB</td></tr>
+      <tr><td data-en="Art" data-ja="アート" data-zh="艺术" data-ko="아트">Art</td><td data-en="Animated GIF metadata, hosted on the site" data-ja="アニメーションGIFのメタデータ、サイトでホスティング" data-zh="动画GIF元数据，托管在网站上" data-ko="애니메이션 GIF 메타데이터, 사이트에 호스팅">Animated GIF metadata, hosted on the site</td></tr>
+    </table>
+  </section>
+
+  <section id="faq">
+    <p class="eyebrow reveal" data-en="◆ FAQ" data-ja="◆ FAQ" data-zh="◆ 常见问题" data-ko="◆ FAQ">◆ FAQ</p>
+    <h2 class="reveal" data-en="FAQ" data-ja="FAQ" data-zh="常见问题" data-ko="FAQ">FAQ</h2>
+    <div class="faq">
+      <div class="faq-item reveal">
+        <button class="faq-q" data-i18n="faqQ1">Is mint open?<span class="faq-icon">+</span></button>
+        <div class="faq-a" data-en="Not yet. The contracts are deployed on BNB Chain and mint opens soon — the button above will switch to MINT NOW when it opens." data-ja="まだです。コントラクトはBNBチェーンにデプロイ済みで、ミントはまもなく開始します — 開始すると上のボタンが「今すぐミント」に変わります。" data-zh="还没有。合约已部署在BNB链上，铸造即将开放 — 开放后上方按钮将变为“立即铸造”。" data-ko="아직 아닙니다. 컨트랙트는 BNB 체인에 배포되었고 민트는 곧 오픈합니다 — 오픈하면 위 버튼이 “지금 민트”로 바뀝니다."><p>Not yet. The contracts are deployed on BNB Chain and mint opens soon &mdash; the button above will switch to MINT NOW when it opens.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" data-i18n="faqQ2">Why GIF art?<span class="faq-icon">+</span></button>
+        <div class="faq-a" data-en="Each agent is an animated GIF. The GIF files are the NFT metadata images, hosted on the site — the same approach as our other collections." data-ja="各エージェントはアニメーションGIFです。GIFファイルはNFTのメタデータ画像で、サイトでホスティング — 他のコレクションと同じ方法です。" data-zh="每个智能体都是一个动画GIF。GIF文件是NFT的元数据图片，托管在网站上 — 与我们其他收藏品的做法相同。" data-ko="각 에이전트는 애니메이션 GIF입니다. GIF 파일은 NFT 메타데이터 이미지로 사이트에 호스팅됩니다 — 다른 컬렉션과 같은 방식입니다."><p>Each agent is an animated GIF. The GIF files are the NFT metadata images, hosted on the site &mdash; the same approach as our other collections.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" data-i18n="faqQ3">How do I get a Mythic Forge King?<span class="faq-icon">+</span></button>
+        <div class="faq-a" data-en="Only by forging: burn 1 Common + 1 Rare + 1 Epic. Mythics are never sold directly, and at most 33 can ever exist." data-ja="鍛造のみ：コモン1体 + レア1体 + エピック1体を燃やす。ミシックは直接販売されず、最大33体までしか存在しない。" data-zh="只能通过锻造：销毁1个普通 + 1个稀有 + 1个史诗。神话从不直接出售，最多只存在33个。" data-ko="단조로만: 커먼 1개 + 레어 1개 + 에픽 1개를 소각. 미식은 직접 판매되지 않으며 최대 33개만 존재할 수 있습니다."><p>Only by forging: burn 1 Common + 1 Rare + 1 Epic. Mythics are never sold directly, and at most 33 can ever exist.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" data-i18n="faqQ4">Does the forge work on day one?<span class="faq-icon">+</span></button>
+        <div class="faq-a" data-en="Yes, that is the point. The forge loop is live at mint. The forge loop is live at mint — see Phase 1 of the roadmap below." data-ja="はい、それがポイントです。フォージの仕組みはミント時から稼働します。フォージの仕組みはミント時から稼働します — 下のロードマップのフェーズ1をご覧ください。" data-zh="是的，这正是关键。锻造循环在铸造时即上线。锻造循环在铸造时即上线 — 请看下面路线图的第1阶段。" data-ko="네, 그게 핵심입니다. 포지 순환은 민트 시점부터 작동합니다. 포지 순환은 민트 시점부터 작동합니다 — 아래 로드맵의 페이즈 1을 참고하세요."><p>Yes, that is the point. The forge loop is live at mint. The forge loop is live at mint &mdash; see Phase 1 of the roadmap below.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" data-i18n="faqQ5">Does it pay anything to holders?<span class="faq-icon">+</span></button>
+        <div class="faq-a" data-en="No. There is no yield, no APY and no daily income. The only BNB prize is the weekly forge leaderboard, paid from the forge-fee treasury." data-ja="いいえ。利回り、APY、日次収入はありません。唯一のBNB賞金は週間フォージリーダーボードで、鍛造手数料のトレジャリーから支払われます。" data-zh="没有。没有收益、没有APY、没有每日收入。唯一的BNB奖励是每周锻造排行榜，由锻造费用金库支付。" data-ko="아니요. 수익도, APY도, 일일 수입도 없습니다. 유일한 BNB 보상은 주간 포지 리더보드로, 단조 수수료 트레저리에서 지급됩니다."><p>No. There is no yield, no APY and no daily income. The only BNB prize is the weekly forge leaderboard, paid from the forge-fee treasury.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" data-i18n="faqQ6">Is the name final?<span class="faq-icon">+</span></button>
+        <div class="faq-a" data-en="The name is ANVIL, symbol ANVIL. Mint is open to everyone — no Agent ID needed. (ANVL as a symbol is already used on BNB Chain by an existing Forge project, so the symbol is ANVIL.)" data-ja="名前はANVIL、シンボルはANVIL。ミントは誰でも参加可能 — Agent ID不要。（ANVLはBNBチェーン上の既存Forgeプロジェクトが使用しているため、シンボルはANVIL。）" data-zh="名称为ANVIL，符号为ANVIL。铸造面向所有人开放 — 无需Agent ID。（ANVL已被BNB链上现有的Forge项目使用，因此符号为ANVIL。）" data-ko="이름은 ANVIL, 심볼은 ANVIL. 민트는 모두에게 열려 있습니다 — Agent ID 불필요. (ANVL은 BNB 체인의 기존 Forge 프로젝트가 이미 사용 중이므로 심볼은 ANVIL입니다.)"><p>The name is ANVIL, symbol ANVIL. Mint is open to everyone &mdash; no Agent ID needed. (ANVL as a symbol is already used on BNB Chain by an existing Forge project, so the symbol is ANVIL.)</p></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<section class="cta">
+  <div class="beam"></div>
+  <div class="particles" id="ctaParticles"></div>
+  <h2 data-en="The forge is lit." data-ja="炉に火が入った。" data-zh="熔炉已经点燃。" data-ko="화로에 불이 붙었다。">The forge is lit.</h2>
+  <p data-en="Mint is open to everyone. Your first mint is FREE — the forge is waiting." data-ja="ミントは誰でも参加可能。初回ミントは無料 — フォージが待っている。" data-zh="铸造面向所有人开放。首次铸造免费 — 熔炉在等你。" data-ko="민트는 모두에게 열려 있습니다. 첫 민트는 무료 — 화로가 기다리고 있습니다.">Mint is open to everyone. Your first mint is FREE &mdash; the forge is waiting.</p>
+  <a class="btn btn-cyan" href="#mint" id="ctaMintBtn">MINT &mdash; OPENS SOON</a>
+</section>
+
+<footer>
+  <div class="foot-word">ANVIL</div>
+  <span data-i18n="footText">ANVIL &mdash; live on BNB Chain.<br>Mint opens soon.</span><br>
+  <a class="foot-x" href="https://x.com/anvilnft_" target="_blank" rel="noopener">𝕏 @anvilnft_</a>
+  <div class="foot-contracts">
+    <a href="https://bscscan.com/address/0xdF3d5D3D9870cb4AB9bC8e8A8f0bA5396a8A3ECf" target="_blank" rel="noopener">NFT 0xdF3d5D3D9870cb4AB9bC8e8A8f0bA5396a8A3ECf</a><br>
+    <a href="https://bscscan.com/address/0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041" target="_blank" rel="noopener">Market 0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041</a><br>
+    <a href="https://bscscan.com/token/0x8ff70168a342ff3Dc03b7bBACe80215426cE7043" target="_blank" rel="noopener">$HAMR 0x8ff70168a342ff3Dc03b7bBACe80215426cE7043</a><br>
+    <a href="https://bscscan.com/address/0x2A2C20d33b9749DFA8724d9f3e42dE145ad72eC6" target="_blank" rel="noopener">Claim 0x2A2C20d33b9749DFA8724d9f3e42dE145ad72eC6</a><br>
+    <a href="claim.html">Claim $HAMR &rarr;</a> &middot; <a href="skill.md">Agent skill</a>
+  </div>
+</footer>
+
+<a class="sticky-cta" href="#mint" id="stickyCta"><span id="stickyCtaLabel">MINT — OPENS SOON</span></a>
+
+<script>
+  let s = { common: 12, rare: 0, epic: 0, mythic: 0, burned: 0 };
+  const $ = id => document.getElementById(id);
+  let lastResult = null;
+  /* ---- i18n EN/JA/ZH/KO ---- */
+  const LANGS = ['en', 'ja', 'zh', 'ko'];
+  let LANG = 'en';
+  const STR = {"marquee": {"en": "FIRST MINT FREE ◆ FORGE 3 INTO 1 ◆ MYTHIC MAX 33 ◆ ANIMATED GIF ART ◆ OPEN TO EVERYONE ◆ CLAIM TOKEN 10,000 PER NFT ◆ 3,333 SUPPLY ◆&nbsp;", "ja": "初回ミント無料 ◆ 3体を1体に鍛造 ◆ ミシック最大33体 ◆ アニメーションGIFアート ◆ 誰でも参加可能 ◆ クレームトークン 10,000/NFT ◆ 供給量3,333 ◆&nbsp;", "zh": "首次铸造免费 ◆ 3合1锻造 ◆ 神话最多33个 ◆ 动画GIF艺术 ◆ 面向所有人 ◆ 领取代币 每个NFT 10,000 ◆ 供应量3,333 ◆&nbsp;", "ko": "첫 민트 무료 ◆ 3개를 1개로 단조 ◆ 미식 최대 33개 ◆ 애니메이션 GIF 아트 ◆ 모두에게 열림 ◆ 클레임 토큰 NFT당 10,000 ◆ 공급량 3,333 ◆&nbsp;"}, "heroTag": {"en": "<b>MYTHIC · FORGE KING</b> — max 33 ever. Only made by forging, never sold directly.", "ja": "<b>MYTHIC · FORGE KING</b> — 最大33体。鍛造からのみ生まれ、直接販売なし。", "zh": "<b>MYTHIC · FORGE KING</b> — 最多33个。只能通过锻造获得，从不直接出售。", "ko": "<b>MYTHIC · FORGE KING</b> — 최대 33개. 단조로만 만들 수 있으며 직접 판매하지 않습니다."}, "rule1": {"en": "The starting agent<br>Forge fuel: 3 → Rare", "ja": "最初のエージェント<br>鍛造素材：3体 → レア", "zh": "初始智能体<br>锻造材料：3个 → 稀有", "ko": "시작 에이전트<br>단조 재료: 3개 → 레어"}, "rule2": {"en": "Forged from 3 Commons<br>Forge fuel: 2 → Epic", "ja": "コモン3体から鍛造<br>鍛造素材：2体 → エピック", "zh": "由3个普通锻造<br>锻造材料：2个 → 史诗", "ko": "커먼 3개에서 단조<br>단조 재료: 2개 → 에픽"}, "rule3": {"en": "Forged from 2 Rares<br>Forge fuel: 1 of each → Mythic", "ja": "レア2体から鍛造<br>鍛造素材：各1体 → ミシック", "zh": "由2个稀有锻造<br>锻造材料：各1个 → 神话", "ko": "레어 2개에서 단조<br>단조 재료: 각 1개 → 미식"}, "rule4": {"en": "Forged from 1 Common + 1 Rare + 1 Epic<br>Max 33 ever · never sold directly", "ja": "コモン1体 + レア1体 + エピック1体から鍛造<br>最大33体 · 直接販売なし", "zh": "由1个普通 + 1个稀有 + 1个史诗锻造<br>最多33个 · 从不直接出售", "ko": "커먼 1개 + 레어 1개 + 에픽 1개에서 단조<br>최대 33개 · 직접 판매 없음"}, "noteHtml": {"en": "<b>Demo note:</b> Forge fees in the real collection are 0.001 BNB per forge, paid to a visible on-chain treasury that funds the weekly forge leaderboard (paid in BNB). The first 100 forges are gas-only, to seed the loop.", "ja": "<b>デモについて：</b>実際のフォージ手数料は1回あたり0.001 BNBで、週間フォージリーダーボード（BNBで支払い）の資金となる公開オンチェーントレジャリーへ支払われます。最初の100回はガス代のみ（循環を始めるため）。", "zh": "<b>演示说明：</b>实际收藏品中每次锻造费用为0.001 BNB，支付给公开的链上金库，用于资助每周锻造排行榜（以BNB支付）。前100次锻造仅需gas，用于启动循环。", "ko": "<b>데모 참고:</b> 실제 컬렉션의 단조 수수료는 회당 0.001 BNB이며, 주간 포지 리더보드(BNB로 지급) 자금을 위한 공개 온체인 트레저리로 지급됩니다. 처음 100회 단조는 가스비만(순환 시작용)입니다."}, "faqQ1": {"en": "Is mint open?<span class=\"faq-icon\">+</span>", "ja": "ミントは開始していますか？<span class=\"faq-icon\">+</span>", "zh": "铸造开放了吗？<span class=\"faq-icon\">+</span>", "ko": "민트가 열렸나요?<span class=\"faq-icon\">+</span>"}, "faqQ2": {"en": "Why GIF art?<span class=\"faq-icon\">+</span>", "ja": "なぜGIFアート？<span class=\"faq-icon\">+</span>", "zh": "为什么是GIF艺术？<span class=\"faq-icon\">+</span>", "ko": "왜 GIF 아트인가요?<span class=\"faq-icon\">+</span>"}, "faqQ3": {"en": "How do I get a Mythic Forge King?<span class=\"faq-icon\">+</span>", "ja": "ミシック・フォージキングはどうやって手に入れる？<span class=\"faq-icon\">+</span>", "zh": "如何获得神话锻造之王？<span class=\"faq-icon\">+</span>", "ko": "미식 포지 킹은 어떻게 얻나요?<span class=\"faq-icon\">+</span>"}, "faqQ4": {"en": "Does the forge work on day one?<span class=\"faq-icon\">+</span>", "ja": "フォージは初日から使える？<span class=\"faq-icon\">+</span>", "zh": "锻造在第一天就能用吗？<span class=\"faq-icon\">+</span>", "ko": "포지는 첫날부터 작동하나요?<span class=\"faq-icon\">+</span>"}, "faqQ5": {"en": "Does it pay anything to holders?<span class=\"faq-icon\">+</span>", "ja": "ホルダーに何か支払われる？<span class=\"faq-icon\">+</span>", "zh": "会向持有者支付任何东西吗？<span class=\"faq-icon\">+</span>", "ko": "홀더에게 무언가를 지급하나요?<span class=\"faq-icon\">+</span>"}, "faqQ6": {"en": "Is the name final?<span class=\"faq-icon\">+</span>", "ja": "名前は確定？<span class=\"faq-icon\">+</span>", "zh": "名称确定了吗？<span class=\"faq-icon\">+</span>", "ko": "이름이 확정되었나요?<span class=\"faq-icon\">+</span>"}, "footText": {"en": "ANVIL — live on BNB Chain.<br>Mint opens soon.", "ja": "ANVIL — BNBチェーンで稼働中。<br>ミントはまもなく開始。", "zh": "ANVIL — 已在BNB链上线。<br>铸造即将开放。", "ko": "ANVIL — BNB 체인에서 작동 중.<br>민트는 곧 오픈합니다."}, "docTitle": {"en": "ANVIL — Forge your agent", "ja": "ANVIL — エージェントを鍛えろ", "zh": "ANVIL — 锻造你的智能体", "ko": "ANVIL — 에이전트를 단련하라"}, "pickForge": {"en": "Pick a forge above to see it work.", "ja": "上のフォージを選んで試してみよう。", "zh": "选择上方的锻造来试试。", "ko": "위에서 단조를 선택해 보세요."}, "forgeRareMsg": {"en": "<b>Forged a RARE agent.</b><br>Burned 3 Commons + 0.001 BNB (demo).", "ja": "<b>レアエージェントを鍛造した。</b><br>コモン3体 + 0.001 BNBを燃やした（デモ）。", "zh": "<b>锻造了一个稀有智能体。</b><br>销毁3个普通 + 0.001 BNB（演示）。", "ko": "<b>레어 에이전트를 단조했다.</b><br>커먼 3개 + 0.001 BNB 소각(데모)."}, "forgeEpicMsg": {"en": "<b>Forged an EPIC agent.</b><br>Burned 2 Rares + 0.001 BNB (demo).", "ja": "<b>エピックエージェントを鍛造した。</b><br>レア2体 + 0.001 BNBを燃やした（デモ）。", "zh": "<b>锻造了一个史诗智能体。</b><br>销毁2个稀有 + 0.001 BNB（演示）。", "ko": "<b>에픽 에이전트를 단조했다.</b><br>레어 2개 + 0.001 BNB 소각(데모)."}, "forgeMythicMsg": {"en": "<b>Forged a MYTHIC FORGE KING.</b><br>Burned 1 Common + 1 Rare + 1 Epic + 0.001 BNB (demo). Max 33 ever.", "ja": "<b>ミシック・フォージキングを鍛造した。</b><br>コモン1体 + レア1体 + エピック1体 + 0.001 BNBを燃やした（デモ）。最大33体。", "zh": "<b>锻造了一个神话锻造之王。</b><br>销毁1个普通 + 1个稀有 + 1个史诗 + 0.001 BNB（演示）。最多33个。", "ko": "<b>미식 포지 킹을 단조했다.</b><br>커먼 1개 + 레어 1개 + 에픽 1개 + 0.001 BNB 소각(데모). 최대 33개."}, "copied": {"en": "Copied!", "ja": "コピーしました！", "zh": "已复制！", "ko": "복사됨!"}, "copyFail": {"en": "Copy failed — select the text manually.", "ja": "コピーできませんでした — テキストを手動で選択してください。", "zh": "复制失败 — 请手动选择文本。", "ko": "복사 실패 — 텍스트를 직접 선택하세요."}, "copyBtn": {"en": "Copy prompt", "ja": "プロンプトをコピー", "zh": "复制提示词", "ko": "프롬프트 복사"}, "mintSoon": {"en": "MINT — OPENS SOON", "ja": "ミント — 近日公開", "zh": "铸造 — 即将开放", "ko": "민트 — 곧 오픈"}, "mintNow": {"en": "MINT NOW", "ja": "今すぐミント", "zh": "立即铸造", "ko": "지금 민트"}, "badgeSoon": {"en": "MINT — OPENS SOON", "ja": "ミント — 近日公開", "zh": "铸造 — 即将开放", "ko": "민트 — 곧 오픈"}, "badgeLive": {"en": "MINT IS LIVE", "ja": "ミント開始", "zh": "铸造已开启", "ko": "민트 오픈"}, "statusPaused": {"en": "OPENS SOON", "ja": "近日公開", "zh": "即将开放", "ko": "곧 오픈"}, "statusLive": {"en": "LIVE", "ja": "ライブ", "zh": "已开启", "ko": "라이브"}, "noWallet": {"en": "No browser wallet detected. Open this site inside your wallet app browser (MetaMask / Trust Wallet / Binance Wallet).", "ja": "ブラウザウォレットが検出されませんでした。MetaMask / Trust Wallet / Binance Wallet のアプリ内ブラウザでこのサイトを開いてください。", "zh": "未检测到浏览器钱包。请在钱包应用内浏览器（MetaMask / Trust Wallet / Binance Wallet）中打开本站。", "ko": "브라우저 지갑이 감지되지 않았습니다. 지갑 앱 브라우저(MetaMask / Trust Wallet / Binance Wallet) 안에서 이 사이트를 여세요."}, "txWalletFee": {"en": "Your wallet could not prepare this transaction (empty answer from the browser). Open this site inside your wallet app browser (MetaMask / Trust Wallet / Binance Wallet) and try again.", "ja": "ウォレットがこの取引を準備できませんでした（ブラウザからの空の応答）。MetaMask / Trust Wallet / Binance Wallet のアプリ内ブラウザでこのサイトを開いて、もう一度お試しください。", "zh": "你的钱包无法准备这笔交易（浏览器返回为空）。请在钱包应用内浏览器（MetaMask / Trust Wallet / Binance Wallet）中打开本站并重试。", "ko": "지갑이 이 트랜잭션을 준비할 수 없었습니다(브라우저 응답 없음). 지갑 앱 브라우저(MetaMask / Trust Wallet / Binance Wallet) 안에서 이 사이트를 열고 다시 시도하세요."}, "connectFail": {"en": "Connect failed: ", "ja": "接続に失敗しました：", "zh": "连接失败：", "ko": "연결 실패: "}, "connected": {"en": "Connected. Your price is based on how many you have minted before.", "ja": "接続しました。価格はこれまでのミント数に基づきます。", "zh": "已连接。价格根据你此前的铸造数量计算。", "ko": "연결됨. 가격은 지금까지 민트한 수량을 기준으로 합니다."}, "connectWallet": {"en": "Connect wallet", "ja": "ウォレットを接続", "zh": "连接钱包", "ko": "지갑 연결"}, "mintNotOpen": {"en": "Mint is not open yet.", "ja": "ミントはまだ開始していません。", "zh": "铸造尚未开启。", "ko": "민트가 아직 열리지 않았습니다."}, "txSent": {"en": "Transaction sent: ", "ja": "トランザクション送信：", "zh": "交易已发送：", "ko": "트랜잭션 전송됨: "}, "waiting": {"en": " — waiting for confirmation…", "ja": " — 確認待ち…", "zh": " — 等待确认…", "ko": " — 확인 대기 중…"}, "minted": {"en": "Minted! Tx: ", "ja": "ミント完了！Tx：", "zh": "铸造成功！Tx：", "ko": "민트 완료! Tx: "}, "mintFail": {"en": "Mint failed: ", "ja": "ミントに失敗しました：", "zh": "铸造失败：", "ko": "민트 실패: "}, "loadFail": {"en": "Could not load live count — check your connection and refresh.", "ja": "ライブカウントを読み込めませんでした。接続を確認して更新してください。", "zh": "无法加载实时数量——请检查网络并刷新。", "ko": "실시간 개수를 불러올 수 없습니다. 연결을 확인하고 새로고침하세요."}, "pausedMsg": {"en": "Mint is PAUSED — the contract is deployed, opening soon.", "ja": "ミントは一時停止中です——コントラクトはデプロイ済み、まもなく開始します。", "zh": "铸造已暂停——合约已部署，即将开启。", "ko": "민트가 일시정지됨 — 컨트랙트는 배포되었고 곧 오픈합니다."}, "totalFor": {"en": "Total for ×", "ja": "合計 ×", "zh": "总计 ×", "ko": "합계 ×"}, "freeWord": {"en": " — FREE", "ja": " — 無料", "zh": " — 免费", "ko": " — 무료"}, "mintedByYou": {"en": "You have minted ", "ja": "あなたのミント数：", "zh": "你已铸造 ", "ko": "지금까지 민트한 수: "}, "mintedByYouB": {"en": " so far.", "ja": " 枚", "zh": " 个。", "ko": "개"}, "qtyInvalid": {"en": "Quantity must be 1–5.", "ja": "数量は1〜5のいずれかです。", "zh": "数量必须是 1–5。", "ko": "수량은 1–5여야 합니다."}};
+  function T(k) { const v = STR[k]; return (v && (v[LANG] || v.en)) || ''; }
+  function setLang(l) {
+    if (LANGS.indexOf(l) < 0) l = 'en';
+    LANG = l;
+    document.body.classList.remove('lang-fade');
+    void document.body.offsetWidth;
+    document.body.classList.add('lang-fade');
+    setTimeout(function () { document.body.classList.remove('lang-fade'); }, 400);
+    try { localStorage.setItem('anvil-lang', l); } catch (e) {}
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : l;
+    document.title = T('docTitle');
+    document.querySelectorAll('[data-en]').forEach(function (el) {
+      const v = el.getAttribute('data-' + l);
+      if (v !== null && v !== undefined) el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      const v = T(el.getAttribute('data-i18n'));
+      if (v) el.innerHTML = v;
+    });
+    document.querySelectorAll('.lang-pill').forEach(function (b) { b.classList.toggle('active', b.dataset.lang === l); });
+    document.querySelectorAll('.faq-item.open .faq-a').forEach(function (a) { a.style.maxHeight = a.scrollHeight + 'px'; });
+    if (lastResult) showResult(lastResult.gif, lastResult.key);
+    else $('result').innerHTML = '<p>' + T('pickForge') + '</p>';
+    if (typeof updateMintButtons === 'function') updateMintButtons();
+  }
+  document.querySelectorAll('.lang-pill').forEach(function (b) { b.addEventListener('click', function () { setLang(b.dataset.lang); }); });
+  (function () {
+    let saved = null;
+    try { saved = localStorage.getItem('anvil-lang'); } catch (e) {}
+    const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    setLang(saved && LANGS.indexOf(saved) >= 0 ? saved : (LANGS.indexOf(nav) >= 0 ? nav : 'en'));
+  })();
+
+  function render() {
+    ['common', 'rare', 'epic', 'mythic', 'burned'].forEach(function (k) {
+      const el = $('cnt-' + k);
+      const v = String(s[k]);
+      if (el.textContent !== v) {
+        el.textContent = v;
+        el.classList.remove('bump');
+        void el.offsetWidth;
+        el.classList.add('bump');
+        setTimeout(function () { el.classList.remove('bump'); }, 500);
+      }
+    });
+    $('btn-rare').disabled = s.common < 3;
+    $('btn-epic').disabled = s.rare < 2;
+    $('btn-mythic').disabled = !(s.common >= 1 && s.rare >= 1 && s.epic >= 1) || s.mythic >= 33;
+  }
+  function showResult(gif, key) {
+    const r = $('result');
+    r.innerHTML = '<img src="' + gif + '" alt="Forged agent"><p>' + T(key) + '</p>';
+    r.classList.remove('swap');
+    void r.offsetWidth;
+    r.classList.add('swap');
+  }
+  function forgeRare() {
+    if (s.common < 3) return;
+    s.common -= 3; s.rare += 1; s.burned += 3; render();
+    lastResult = { gif: 'images/rare.gif', key: 'forgeRareMsg' };
+    showResult(lastResult.gif, lastResult.key);
+    sparkBurst();
+  }
+  function forgeEpic() {
+    if (s.rare < 2) return;
+    s.rare -= 2; s.epic += 1; s.burned += 2; render();
+    lastResult = { gif: 'images/epic.gif', key: 'forgeEpicMsg' };
+    showResult(lastResult.gif, lastResult.key);
+    sparkBurst();
+  }
+  function forgeMythic() {
+    if (!(s.common >= 1 && s.rare >= 1 && s.epic >= 1) || s.mythic >= 33) return;
+    s.common -= 1; s.rare -= 1; s.epic -= 1; s.mythic += 1; s.burned += 3; render();
+    lastResult = { gif: 'images/mythic.gif', key: 'forgeMythicMsg' };
+    showResult(lastResult.gif, lastResult.key);
+    sparkBurst();
+  }
+  function resetDemo() {
+    s = { common: 12, rare: 0, epic: 0, mythic: 0, burned: 0 };
+    lastResult = null;
+    render();
+    $('result').innerHTML = '<p>' + T('pickForge') + '</p>';
+  }
+  function addCommons() { s.common += 3; render(); }
+  render();
+
+  /* particles (light, CSS-driven twinkle) */
+  function fillParticles(id, n) {
+    const box = document.getElementById(id);
+    if (!box) return;
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('i');
+      p.style.left = (Math.random() * 100).toFixed(1) + '%';
+      p.style.top = (Math.random() * 100).toFixed(1) + '%';
+      p.style.setProperty('--d', (3 + Math.random() * 3).toFixed(1) + 's');
+      p.style.setProperty('--dl', (Math.random() * 4).toFixed(1) + 's');
+      const sz = (2 + Math.random() * 2.5).toFixed(0);
+      p.style.width = sz + 'px'; p.style.height = sz + 'px';
+      if (Math.random() < 0.5) p.style.background = Math.random() < 0.5 ? '#f5a542' : '#f5c542';
+      box.appendChild(p);
+    }
+  }
+  fillParticles('heroParticles', 64);
+  fillParticles('ctaParticles', 24);
+
+  /* scroll reveal */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* hero art parallax (subtle, rAF-throttled; off for reduced motion) */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const inner = document.querySelector('.hero-inner');
+    if (!inner) return;
+    let ticking = false;
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        const y = window.scrollY || 0;
+        inner.style.transform = 'translateY(' + Math.min(28, (y * 0.08)).toFixed(1) + 'px)';
+        ticking = false;
+      });
+    }, { passive: true });
+  })();
+
+  /* count-up stats */
+  const cio = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      cio.unobserve(e.target);
+      const el = e.target, target = parseInt(el.dataset.target, 10), t0 = performance.now(), dur = 1200;
+      (function tick(t) {
+        const p = Math.min(1, (t - t0) / dur), v = Math.round(target * (1 - Math.pow(1 - p, 3)));
+        el.textContent = v.toLocaleString('en-US');
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.count').forEach(el => cio.observe(el));
+
+  /* FAQ accordion */
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q'), a = item.querySelector('.faq-a');
+    q.addEventListener('click', () => {
+      const open = item.classList.toggle('open');
+      a.style.maxHeight = open ? a.scrollHeight + 'px' : '0px';
+    });
+  });
+
+  /* mobile nav */
+  const burger = document.getElementById('burger'), navLinks = document.getElementById('navLinks');
+  function closeNav() { navLinks.classList.remove('open'); burger.textContent = '☰'; burger.setAttribute('aria-expanded', 'false'); }
+  burger.addEventListener('click', () => {
+    const open = navLinks.classList.toggle('open');
+    burger.textContent = open ? '✕' : '☰';
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', closeNav));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+  document.addEventListener('click', (e) => { if (navLinks.classList.contains('open') && !e.target.closest('.nav')) closeNav(); });
+
+  /* spark burst on forge success */
+  function sparkBurst() {
+    const r = $('result');
+    for (let i = 0; i < 12; i++) {
+      const sp = document.createElement('span');
+      sp.className = 'spark';
+      const ang = (i / 12) * Math.PI * 2 + Math.random() * 0.5;
+      const dist = 60 + Math.random() * 70;
+      sp.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(0) + 'px');
+      sp.style.setProperty('--dy', (Math.sin(ang) * dist).toFixed(0) + 'px');
+      sp.style.left = '50%';
+      sp.style.top = '40%';
+      sp.style.background = (i % 3 === 0) ? '#f5c542' : '#A1F0FD';
+      r.appendChild(sp);
+      setTimeout(function () { sp.remove(); }, 900);
+    }
+  }
+
+  /* mint tabs */
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'tab-' + btn.dataset.tab); });
+    });
+  });
+
+  /* copy agent prompt */
+  (function () {
+    const copyBtn = document.getElementById('copyPromptBtn');
+    const copyStatus = document.getElementById('copyStatus');
+    if (!copyBtn) return;
+    copyBtn.addEventListener('click', async function () {
+      const text = document.getElementById('agentPrompt').textContent;
+      let ok = false;
+      try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { ok = false; }
+      if (!ok) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+        } catch (e2) { ok = false; }
+      }
+      if (ok) {
+        copyStatus.textContent = T('copied');
+        copyBtn.textContent = T('copied');
+        setTimeout(function () { copyBtn.textContent = T('copyBtn'); copyStatus.textContent = ''; }, 1600);
+      } else {
+        try {
+          const range = document.createRange();
+          range.selectNodeContents(document.getElementById('agentPrompt'));
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (e3) {}
+        copyStatus.textContent = T('copyFail');
+      }
+    });
+  })();
+
+
+  /* ---- live mint (BNB Chain, production) ---- */
+  const CONTRACT = "0xdF3d5D3D9870cb4AB9bC8e8A8f0bA5396a8A3ECf";
+  const MARKET = "0x86FA136EB7D5fAa395BbA91e7a1e67BcB6F05041";
+  const HAMR_TOKEN = "0x8ff70168a342ff3Dc03b7bBACe80215426cE7043";
+  const HAMR_CLAIM = "0x2A2C20d33b9749DFA8724d9f3e42dE145ad72eC6";
+  const RPCS = ["https://bsc-dataseed.bnbchain.org", "https://bsc-dataseed1.binance.org", "https://rpc-bsc.48.club"];
+  const SEL_TOTAL = "0xa2309ff8", SEL_PAUSED = "0x7e4831d3", SEL_PRICEFOR = "0xd527979a", SEL_MINTEDBY = "0x0d758111";
+  var provider = null, signer = null, userAddr = null, selectedQty = 1, mintedByYou = 0;
+  async function rpcCall(to, data) {
+    for (const url of RPCS) {
+      try {
+        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to, data }, "latest"] }) });
+        const j = await r.json(); if (j.result) return j.result;
+      } catch (e) {}
+    }
+    return null;
+  }
+  async function rpcGasPrice() {
+    for (const url of RPCS) {
+      try {
+        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_gasPrice", params: [] }) });
+        const j = await r.json(); if (j.result) return BigInt(j.result);
+      } catch (e) {}
+    }
+    return 1000000000n;
+  }
+  function txErrMsg(e) {
+    const m = (e && e.message) || String(e || "");
+    if (m.indexOf("invalid BigNumberish") >= 0 || m.indexOf("value=null") >= 0) { return T("txWalletFee"); }
+    return (e && e.reason) || m;
+  }
+  async function sendTx(tx, gasLimit) {
+    const gp = await rpcGasPrice();
+    return signer.sendTransaction({ ...tx, gasPrice: gp, gasLimit: BigInt(gasLimit) });
+  }
+  function updateNoWallet() {
+    const w = $("noWalletWarn");
+    if (!w) return;
+    const show = !window.ethereum;
+    w.textContent = show ? T("noWallet") : "";
+    w.classList.toggle("show", show);
+  }
+  function updateMintButtons() {
+    const mintBtn = $("mintBtn");
+    if (!mintBtn) return;
+    const paused = window._anvilPaused !== false;
+    const heroBadge = $("heroBadge"), mintBadge = $("mintBadge");
+    const heroMintBtn = $("heroMintBtn"), ctaMintBtn = $("ctaMintBtn");
+    const stickyLabel = $("stickyCtaLabel"), statusVal = $("mintStatusVal");
+    if (paused) {
+      mintBtn.disabled = true; mintBtn.classList.remove("live"); mintBtn.textContent = T("mintSoon");
+      if (heroBadge) heroBadge.textContent = T("badgeSoon");
+      if (mintBadge) mintBadge.textContent = T("badgeSoon");
+      if (heroMintBtn) heroMintBtn.textContent = T("mintSoon");
+      if (ctaMintBtn) ctaMintBtn.textContent = T("mintSoon");
+      if (stickyLabel) stickyLabel.textContent = T("mintSoon");
+      if (statusVal) statusVal.textContent = T("statusPaused");
+    } else {
+      mintBtn.disabled = !userAddr; mintBtn.classList.toggle("live", !!userAddr); mintBtn.textContent = T("mintNow");
+      if (heroBadge) heroBadge.textContent = T("badgeLive");
+      if (mintBadge) mintBadge.textContent = T("badgeLive");
+      if (heroMintBtn) heroMintBtn.textContent = T("mintNow");
+      if (ctaMintBtn) ctaMintBtn.textContent = T("mintNow");
+      if (stickyLabel) stickyLabel.textContent = T("mintNow");
+      if (statusVal) statusVal.textContent = T("statusLive");
+    }
+    const cb = $("connectBtn");
+    if (cb && !userAddr) cb.textContent = T("connectWallet");
+  }
+  async function refreshMint() {
+    const pres = await rpcCall(CONTRACT, SEL_PAUSED);
+    const paused = pres ? (parseInt(pres, 16) === 1) : true;
+    window._anvilPaused = paused;
+    const res = await rpcCall(CONTRACT, SEL_TOTAL);
+    const mc = $("mintedCount");
+    if (res) {
+      const n = parseInt(res, 16);
+      if (mc) mc.textContent = n.toLocaleString("en-US") + " / 3,333";
+    } else {
+      if (mc) mc.textContent = T("loadFail");
+    }
+    if (userAddr) {
+      const mres = await rpcCall(CONTRACT, SEL_MINTEDBY + userAddr.slice(2).padStart(64, "0"));
+      mintedByYou = mres ? parseInt(mres, 16) : 0;
+      const mby = $("mintedByYou");
+      if (mby) mby.textContent = T("mintedByYou") + mintedByYou + T("mintedByYouB");
+    }
+    updateMintButtons();
+  }
+  function setQty(v) {
+    selectedQty = v;
+    document.querySelectorAll(".qtybtn").forEach(function (b) { b.classList.toggle("on", parseInt(b.getAttribute("data-qty"), 10) === v); });
+    updateCost();
+  }
+  async function updateCost() {
+    if (!userAddr) return;
+    const data = SEL_PRICEFOR + userAddr.slice(2).padStart(64, "0") + selectedQty.toString(16).padStart(64, "0");
+    const res = await rpcCall(CONTRACT, data);
+    if (!res) return;
+    const wei = BigInt(res);
+    $("totalCost").textContent = T("totalFor") + selectedQty + ": " + (Number(wei) / 1e18).toFixed(5) + " BNB" + (wei === 0n ? T("freeWord") : "");
+  }
+  async function connectWallet() {
+    if (!window.ethereum) { $("mintMsg").textContent = T("noWallet"); updateNoWallet(); return; }
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const net = await provider.getNetwork();
+      if (net.chainId !== 56n) { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x38" }] }); }
+      signer = await provider.getSigner(); userAddr = await signer.getAddress();
+      $("connectBtn").textContent = "CONNECTED: " + userAddr.slice(0, 6) + "…" + userAddr.slice(-4);
+      $("mintMsg").textContent = T("connected");
+      refreshMint(); updateCost();
+    } catch (e) { $("mintMsg").textContent = T("connectFail") + (e.message || e); }
+  }
+  async function mintNow() {
+    if (!signer) { await connectWallet(); if (!signer) return; }
+    const q = selectedQty;
+    if (q < 1 || q > 5) { $("mintMsg").textContent = T("qtyInvalid"); return; }
+    try {
+      const data = SEL_PRICEFOR + userAddr.slice(2).padStart(64, "0") + q.toString(16).padStart(64, "0");
+      const res = await rpcCall(CONTRACT, data);
+      const value = res ? BigInt(res) : 0n;
+      const iface = new ethers.Interface(["function mint(uint256 quantity)"]);
+      const tx = await sendTx({ to: CONTRACT, data: iface.encodeFunctionData("mint", [q]), value }, 300000);
+      $("mintMsg").textContent = T("txSent") + tx.hash + T("waiting");
+      await tx.wait();
+      $("mintMsg").textContent = T("minted") + tx.hash;
+      refreshMint();
+    } catch (e) { $("mintMsg").textContent = T("mintFail") + txErrMsg(e); }
+  }
+  updateNoWallet();
+  refreshMint();
+</script>
+</body>
+</html>
